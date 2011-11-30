@@ -82,7 +82,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
     for it = 1 : learn_params.max_iter
 
         %chose best learner
-		models = learn_params.train(X, y, distr);
+		models = feval(learn_params.train, X, y, distr, it);
     
         % calc error
         rev_distr = ((1 ./ distr)) / sum ((1 ./ distr));
@@ -90,7 +90,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
         for i = 1:length(models)
             curr_model = models{i};
 
-			step_out = learn_params.predict(curr_model, X);
+			step_out = feval(learn_params.predict, curr_model, X);
       
 			s1 = sum( (y ==  1) .* (step_out) .* distr);
 			s2 = sum( (y == -1) .* (step_out) .* distr);
@@ -109,7 +109,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
             weights(end+1) = alpha; %#ok<AGROW>
             
             learner.model = curr_model;
-            learner.predict = @(X) learn_params.predict(curr_model, X);
+            learner.predict = learn_params.predict;
             learners{end+1} = learner; %#ok<AGROW>
 			
 			% performance calc

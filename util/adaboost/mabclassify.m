@@ -18,6 +18,6 @@ function result = mabclassify(learners, weights, X)
 result = zeros(1, size(X, 2));
 
 for i = 1 : length(weights)
-  lrn_out = learners{i}.predict(X);
+  lrn_out = feval(learners{i}.predict, learners{i}.model, (X));
   result = result + lrn_out * weights(i);
 end

@@ -4,16 +4,14 @@ fprintf('Loading data...\n');
 learners = {};
 weights = [];
 lrn_auc = -1;
-load binaryAdaboostModelData.mat; % learners weights lrn_auc X_train y_train X_val y_val X_test y_test X_submit
+load binaryAdaboostModelData.mat; % learners weights lrn_auc
 load('../data/binaryData.mat'); % X_train y_train X_val y_val X_test y_test
-load('../data/binarySubmitData.mat'); % X_submit
 cur_learners = learners;
 cur_weights = weights;
 
 %training config
-learn_obj.train = @(X, y, weigths) ...
-    {mabNnetTrain(X, y, weigths, [10 10], {'tansig', 'tansig', 'tansig'})};
-learn_obj.predict = @(model, X) sim(model, X);
+learn_obj.train = 'mabNnetTrain';
+learn_obj.predict ='mabNnetPredict';
 learn_obj.max_fail = 4;
 
 n = 1000;
@@ -45,7 +43,7 @@ for i=1:n
         learners = cur_learners;
         lrn_auc = cur_lrn_auc;
         weights = cur_weights;
-        save binaryAdaboostModelData.mat learners weights lrn_auc X_train y_train X_val y_val X_test y_test X_submit;
+        save binaryAdaboostModelData.mat learners weights lrn_auc;
         fprintf('Adaboost model saved...\n');
     else
         fprintf('Best auc is: %1.4f\n', lrn_auc);
