@@ -22,7 +22,7 @@ void print_string_matlab(const char *s) {mexPrintf(s);}
 void exit_with_help()
 {
 	mexPrintf(
-	"Usage: model = svmtrain(training_label_vector, training_instance_matrix, 'libsvm_options');\n"
+	"Usage: model = svmtrain(training_weight_vector, training_label_vector, training_instance_matrix, 'libsvm_options');\n"
 	"libsvm_options:\n"
 	"-s svm_type : set type of SVM (default 0)\n"
 	"	0 -- C-SVC\n"
@@ -104,13 +104,13 @@ double do_cross_validation()
 	return retval;
 }
 
-// nrhs should be 3
+// nrhs should be 4
 int parse_command_line(int nrhs, const mxArray *prhs[], char *model_file_name)
 {
 	int i, argc = 1;
 	char cmd[CMD_LEN];
 	char *argv[CMD_LEN/2];
-	void (*print_func)(const char *) = print_string_matlab;	// default printing to matlab display
+	void (*print_func)(const char *) = print_string_matlab;	// default printing to stdout
 
 	// default values
 	param.svm_type = C_SVC;
@@ -133,10 +133,10 @@ int parse_command_line(int nrhs, const mxArray *prhs[], char *model_file_name)
 	if(nrhs <= 1)
 		return 1;
 
-	if(nrhs > 2)
+	if(nrhs > 3)
 	{
 		// put options in argv[]
-		mxGetString(prhs[2], cmd, mxGetN(prhs[2]) + 1);
+		mxGetString(prhs[3], cmd, mxGetN(prhs[3]) + 1);
 		if((argv[argc] = strtok(cmd, " ")) != NULL)
 			while((argv[++argc] = strtok(NULL, " ")) != NULL)
 				;
@@ -219,16 +219,18 @@ int parse_command_line(int nrhs, const mxArray *prhs[], char *model_file_name)
 }
 
 // read in a problem (in svmlight format)
-int read_problem_dense(const mxArray *label_vec, const mxArray *instance_mat)
+int read_problem_dense(const mxArray *weight_vec, const mxArray *label_vec, const mxArray *instance_mat)
 {
 	int i, j, k;
-	int elements, max_index, sc, label_vector_row_num;
-	double *samples, *labels;
+	int elements, max_index, sc, label_vector_row_num, weight_vector_row_num;
+	double *samples, *labels, *weights;
 
 	prob.x = NULL;
 	prob.y = NULL;
+	prob.W = NULL;
 	x_space = NULL;
 
+	weights = mxGetPr(weight_vec);
 	labels = mxGetPr(label_vec);
 	samples = mxGetPr(instance_mat);
 	sc = (int)mxGetN(instance_mat);
@@ -236,8 +238,16 @@ int read_problem_dense(const mxArray *label_vec, const mxArray *instance_mat)
 	elements = 0;
 	// the number of instance
 	prob.l = (int)mxGetM(instance_mat);
+	weight_vector_row_num = (int) mxGetM(weight_vec);
 	label_vector_row_num = (int)mxGetM(label_vec);
 
+	if(weight_vector_row_num == 0) 
+		mexPrintf("Warning: treat each instance with weight 1.0\n");
+	else if(weight_vector_row_num!=prob.l)
+	{
+		mexPrintf("Length of weight vector does not match # of instances.\n");
+		return -1;
+	}
 	if(label_vector_row_num!=prob.l)
 	{
 		mexPrintf("Length of label vector does not match # of instances.\n");
@@ -260,6 +270,7 @@ int read_problem_dense(const mxArray *label_vec, const mxArray *instance_mat)
 
 	prob.y = Malloc(double,prob.l);
 	prob.x = Malloc(struct svm_node *,prob.l);
+	prob.W = Malloc(double,prob.l);
 	x_space = Malloc(struct svm_node, elements);
 
 	max_index = sc;
@@ -268,6 +279,9 @@ int read_problem_dense(const mxArray *label_vec, const mxArray *instance_mat)
 	{
 		prob.x[i] = &x_space[j];
 		prob.y[i] = labels[i];
+		prob.W[i] = 1;
+		if(weight_vector_row_num == prob.l)
+			prob.W[i] *= (double) weights[i];
 
 		for(k = 0; k < sc; k++)
 		{
@@ -297,16 +311,17 @@ int read_problem_dense(const mxArray *label_vec, const mxArray *instance_mat)
 	return 0;
 }
 
-int read_problem_sparse(const mxArray *label_vec, const mxArray *instance_mat)
+int read_problem_sparse(const mxArray *weight_vec, const mxArray *label_vec, const mxArray *instance_mat)
 {
 	int i, j, k, low, high;
 	mwIndex *ir, *jc;
-	int elements, max_index, num_samples, label_vector_row_num;
-	double *samples, *labels;
+	int elements, max_index, num_samples, label_vector_row_num, weight_vector_row_num;
+	double *samples, *labels, *weights;
 	mxArray *instance_mat_col; // transposed instance sparse matrix
 
 	prob.x = NULL;
 	prob.y = NULL;
+	prob.W = NULL;
 	x_space = NULL;
 
 	// transpose instance matrix
@@ -323,6 +338,7 @@ int read_problem_sparse(const mxArray *label_vec, const mxArray *instance_mat)
 	}
 
 	// each column is one instance
+	weights = mxGetPr(weight_vec);
 	labels = mxGetPr(label_vec);
 	samples = mxGetPr(instance_mat_col);
 	ir = mxGetIr(instance_mat_col);
@@ -332,8 +348,16 @@ int read_problem_sparse(const mxArray *label_vec, const mxArray *instance_mat)
 
 	// the number of instance
 	prob.l = (int)mxGetN(instance_mat_col);
+	weight_vector_row_num = (int) mxGetM(weight_vec);
 	label_vector_row_num = (int)mxGetM(label_vec);
 
+	if(weight_vector_row_num == 0) 
+		mexPrintf("Warning: treat each instance with weight 1.0\n");
+	else if(weight_vector_row_num!=prob.l)
+	{
+		mexPrintf("Length of weight vector does not match # of instances.\n");
+		return -1;
+	}
 	if(label_vector_row_num!=prob.l)
 	{
 		mexPrintf("Length of label vector does not match # of instances.\n");
@@ -345,6 +369,7 @@ int read_problem_sparse(const mxArray *label_vec, const mxArray *instance_mat)
 
 	prob.y = Malloc(double,prob.l);
 	prob.x = Malloc(struct svm_node *,prob.l);
+	prob.W = Malloc(double,prob.l);
 	x_space = Malloc(struct svm_node, elements);
 
 	j = 0;
@@ -352,6 +377,9 @@ int read_problem_sparse(const mxArray *label_vec, const mxArray *instance_mat)
 	{
 		prob.x[i] = &x_space[j];
 		prob.y[i] = labels[i];
+		prob.W[i] = 1;
+		if(weight_vector_row_num == prob.l)
+			prob.W[i] *= (double) weights[i];
 		low = (int)jc[i], high = (int)jc[i+1];
 		for(k=low;k<high;k++)
 		{
@@ -385,7 +413,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	srand(1);
 
 	// Transform the input Matrix to libsvm format
-	if(nrhs > 1 && nrhs < 4)
+	if(nrhs > 2 && nrhs < 5)
 	{
 		int err;
 
@@ -403,14 +431,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
 			return;
 		}
 
-		if(mxIsSparse(prhs[1]))
+		if(mxIsSparse(prhs[2]))
 		{
 			if(param.kernel_type == PRECOMPUTED)
 			{
 				// precomputed kernel requires dense matrix, so we make one
 				mxArray *rhs[1], *lhs[1];
 
-				rhs[0] = mxDuplicateArray(prhs[1]);
+				rhs[0] = mxDuplicateArray(prhs[2]);
 				if(mexCallMATLAB(1, lhs, 1, rhs, "full"))
 				{
 					mexPrintf("Error: cannot generate a full training instance matrix\n");
@@ -418,15 +446,15 @@ void mexFunction( int nlhs, mxArray *plhs[],
 					fake_answer(plhs);
 					return;
 				}
-				err = read_problem_dense(prhs[0], lhs[0]);
+				err = read_problem_dense(prhs[0], prhs[1], lhs[0]);
 				mxDestroyArray(lhs[0]);
 				mxDestroyArray(rhs[0]);
 			}
 			else
-				err = read_problem_sparse(prhs[0], prhs[1]);
+				err = read_problem_sparse(prhs[0], prhs[1], prhs[2]);
 		}
 		else
-			err = read_problem_dense(prhs[0], prhs[1]);
+			err = read_problem_dense(prhs[0], prhs[1], prhs[2]);
 
 		// svmtrain's original code
 		error_msg = svm_check_parameter(&prob, &param);
@@ -438,6 +466,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 			svm_destroy_param(&param);
 			free(prob.y);
 			free(prob.x);
+			free(prob.W);
 			free(x_space);
 			fake_answer(plhs);
 			return;
@@ -452,7 +481,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		}
 		else
 		{
-			int nr_feat = (int)mxGetN(prhs[1]);
+			int nr_feat = (int)mxGetN(prhs[2]);
 			const char *error_msg;
 			model = svm_train(&prob, &param);
 			error_msg = model_to_matlab_structure(plhs, nr_feat, model);
@@ -463,6 +492,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		svm_destroy_param(&param);
 		free(prob.y);
 		free(prob.x);
+		free(prob.W);
 		free(x_space);
 	}
 	else
