@@ -25,6 +25,5 @@ function [X_resampled, y_resampled] = svmresample(X, y, c, gamma, n_batch)
         i = j + 1;
     end
     
-    [X_resampled, idx] = unique(X_resampled, 'rows');
-    y_resampled = y_resampled(idx);
+	[X_resampled, y_resampled] = uniquex(X_resampled, y_resampled);
 end

@@ -132,7 +132,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
             
 			
 			% stop condition
-            if ((val_auc > best.auc) || (val_acc > best.acc))
+            if ((val_auc > best.auc) || (val_auc == best.auc && val_acc > best.acc))
                 best.auc = val_auc;
                 best.acc = val_acc;
                 best.learners = learners;

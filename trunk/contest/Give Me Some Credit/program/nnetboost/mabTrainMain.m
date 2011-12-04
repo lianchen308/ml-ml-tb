@@ -13,13 +13,13 @@ cur_weights = weights;
 
 %training config
 learn_obj.train = 'mabNnetTrain';
-learn_obj.predict ='mabNnetPredict';
+learn_obj.predict ='sim';
 learn_obj.max_fail = 7;
 
 n = 1000;
 learners_hist = cell(0,0);
 weight_hist = cell(0,0);
-retrain = 1;
+retrain = 0;
 X = [X_train X_val];
 y = [y_train y_val];
 for i=1:n
@@ -31,7 +31,7 @@ for i=1:n
         mabeval(cur_learners, cur_weights, X, y, X_test, y_test);
         [cur_learners, cur_weights] = mablrnagg(learners, weights);
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y, cur_weights, {cur_learners});
-        retrain = 1;
+        retrain = 0;
     else
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y);
     end

@@ -1,11 +1,10 @@
-%returns unique values shuffled
+% Returns unique row values of matrix X
 %	[X, y] = uniquex(X, y)
 function [X, y] = uniquex(X, y)
     
-    [X, idx] = unique(X, 'rows');
-    y = y(idx);
-    
-    [X, idx] = shuffle(X);
-    y = y(idx);
+    [~, idx] = unique(X, 'rows', 'first');
+	idx = sort(idx);
+	X = X(idx, :);
+    y = y(idx, :);
 
 end
