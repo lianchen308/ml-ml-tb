@@ -1,6 +1,7 @@
 fprintf('Loading submission data...\n');
 % loading data
-load binaryAdaboostModelData1.mat; % learners weights X_submit
+load binaryAdaboostModelData.mat; % learners weights
+load('../data/binarySubmitData.mat'); % X_submit
 
 
 

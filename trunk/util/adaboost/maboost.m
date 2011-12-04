@@ -49,6 +49,9 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 		y = y(:, rand_index(val_size+1:end));
 	end
 	
+    best.auc = -1;
+	best.fails = 0;
+    
     if (nargin == 3)
         learners = {};
         weights = [];
@@ -61,6 +64,17 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
         final_hyp = mabclassify(learners, weights, X);
         distr = exp(- (y .* final_hyp));  
         distr = distr / sum(distr);
+        
+        % store best values
+        y_val_result = mabclassify(learners, weights, X_val);
+        [~, y_val_prob, val_acc] = predlabel(y_val, y_val_result);
+        [val_auc] = aucscore(y_val, y_val_prob);
+        best.auc = val_auc;
+        best.acc = val_acc;
+        best.learners = learners;
+        best.weights = weights;
+        best.final_hyp = final_hyp;
+        
     else
         error('Incorrect param number');
     end
@@ -77,9 +91,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
         learn_params.max_iter = 1000;
     end
 	
-	best.auc = -1;
-	best.fails = 0;
-    for it = 1 : learn_params.max_iter
+	for it = 1 : learn_params.max_iter
 
         %chose best learner
 		models = feval(learn_params.train, X, y, distr, it);
@@ -120,7 +132,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
             
 			
 			% stop condition
-            if ((val_auc > best.auc) || (val_auc == best.auc && val_acc > best.acc))
+            if ((val_auc > best.auc) || (val_acc > best.acc))
                 best.auc = val_auc;
                 best.acc = val_acc;
                 best.learners = learners;
