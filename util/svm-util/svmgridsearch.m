@@ -18,9 +18,11 @@ function [svm_model, svm_auc, svm_c, svm_gamma] = svmgridsearch(X_train, y_train
         n_find_params = n_train;
 		X_val_find = X_val;
 		y_val_find = y_val;
-	else
-		X_val_find = [X_train(n_find_params+1:end, :); X_val];
-		y_val_find = [y_train(n_find_params+1:end, :); y_val];
+    else
+        X_val_find = X_val;
+		y_val_find = y_val;
+		%X_val_find = [X_train(n_find_params+1:end, :); X_val];
+		%y_val_find = [y_train(n_find_params+1:end, :); y_val];
     end
 	if (~exist('n_actual_train', 'var') || isempty(n_actual_train))
 		n_actual_train = 20000;
@@ -78,7 +80,8 @@ function [C, gamma] = dogridsearch(X_train, y_train, X_val, y_val, c_values, gam
 
     % training models
     n_params = size(param_matrix, 1);
-    fid = fopen('svmgridsearch.txt','a');
+    fid = fopen(sprintf('svmgridsearch.%s.txt', datestr(now, 'yyyy-mm-dd.HH-MM')),'a');
+	fprintf(fid,'%%\tC\t\tgamma\t\tacc\t\tauc\n');
     for i=1:n_params
         % getting params
         C = param_matrix(i,c_col);
@@ -88,10 +91,9 @@ function [C, gamma] = dogridsearch(X_train, y_train, X_val, y_val, c_values, gam
         [~, y_val_acc, ~, y_val_auc] = svmpredictw(svm_model, X_val, y_val);
         %saving results
         param_matrix(i,score_col) = y_val_auc;
-        performance = sprintf('P %d of %d: C=%10.10f, g=%10.10f, acc:%1.4f, auc:%1.4f\n', ...
+        fprintf('P %d of %d: C=%10.10f, g=%10.10f, acc:%1.4f, auc:%1.4f\n', ...
                 i, n_params, C, gamma, y_val_acc, y_val_auc);
-        fprintf(performance);
-        fprintf(fid, performance);
+        fprintf(fid, '%s\t%s\t%s\t%s\n', num2str(C), num2str(gamma), num2str(y_val_acc), num2str(y_val_auc));
     end
     fclose(fid);
 

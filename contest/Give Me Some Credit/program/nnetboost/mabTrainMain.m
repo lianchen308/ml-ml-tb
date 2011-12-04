@@ -1,4 +1,6 @@
-clear; clc;
+%clear; 
+clc;
+
 fprintf('Loading data...\n');
 
 learners = {};
@@ -12,7 +14,7 @@ cur_weights = weights;
 %training config
 learn_obj.train = 'mabNnetTrain';
 learn_obj.predict ='mabNnetPredict';
-learn_obj.max_fail = 4;
+learn_obj.max_fail = 7;
 
 n = 1000;
 learners_hist = cell(0,0);
@@ -26,9 +28,10 @@ for i=1:n
     fprintf('Model adaboost %d of %d train...\n', i, n);
     
     if (retrain)
-        mabhisteval(cur_learners, cur_weights, X, y, X_test, y_test);
-        [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y, cur_weights, cur_learners);
-        retrain = 0;
+        mabeval(cur_learners, cur_weights, X, y, X_test, y_test);
+        [cur_learners, cur_weights] = mablrnagg(learners, weights);
+        [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y, cur_weights, {cur_learners});
+        retrain = 1;
     else
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y);
     end
