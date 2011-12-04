@@ -7,6 +7,14 @@ lrn_auc = -1;
 load binarySvmAdaboostModelData.mat; % learners weights lrn_auc
 load('../data/binaryData.mat'); % X_train y_train X_val y_val X_test y_test
 
+use_resample = 1;
+if (use_resample)
+    fprintf('Loading resampling data...\n');
+    load('../svm/binarySvmResampledData.mat'); %  X_train_resampled y_train_resampled
+    X_train = X_train_resampled';
+    y_train = y_train_resampled';
+end
+
 cur_learners = learners;
 cur_weights = weights;
 
@@ -19,8 +27,8 @@ learn_obj.max_fail = 4;
 X = [X_train X_val];
 y = [y_train y_val];
 
-n = 10;
-n_train = 10000;
+n = 1;
+n_train = 14000;
 for i=1:n
     % Training
     tic;
