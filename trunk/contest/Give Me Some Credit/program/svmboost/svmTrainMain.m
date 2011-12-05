@@ -4,16 +4,8 @@ fprintf('Loading data...\n');
 learners = {};
 weights = [];
 lrn_auc = -1;
-load binarySvmAdaboostModelData.mat; % learners weights lrn_auc
+load('../nnetboost/binaryAdaboostModelData.mat') % learners weights lrn_auc
 load('../data/binaryData.mat'); % X_train y_train X_val y_val X_test y_test
-
-use_resample = 1;
-if (use_resample)
-    fprintf('Loading resampling data...\n');
-    load('../svm/binarySvmResampledData.mat'); %  X_train_resampled y_train_resampled
-    X_train = X_train_resampled';
-    y_train = y_train_resampled';
-end
 
 cur_learners = learners;
 cur_weights = weights;
@@ -27,15 +19,22 @@ learn_obj.max_fail = 4;
 X = [X_train X_val];
 y = [y_train y_val];
 
-n = 1;
-n_train = 14000;
+retrain = 1;
+n = 20;
 for i=1:n
     % Training
     tic;
     fprintf('Model adaboost %d of %d train...\n', i, n);
     
-    rand_idx = randperm(length(y), n_train);
-    [cur_learners, cur_weights, ~] = maboost(learn_obj, X(:, rand_idx), y(:, rand_idx));
+    if (retrain)
+        mabeval(cur_learners, cur_weights, X, y, X_test, y_test);
+        [cur_learners, cur_weights] = mablrnagg(learners, weights);
+        [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y, cur_weights, {cur_learners});
+        %retrain = 0;
+    else
+        [cur_learners, cur_weights, ~] = maboost(learn_obj, X(:, rand_idx), y(:, rand_idx));
+    end
+    
     fprintf('Evaluating complete modest adaboost model...\n');
     [cur_lrn_auc, cur_lrn_acc] = mabeval(cur_learners, cur_weights, X, y, X_test, y_test);
     
