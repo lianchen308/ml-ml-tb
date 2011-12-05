@@ -11,7 +11,7 @@ for i=1:n
     % Training
     tic;
     fprintf('Model nnet %d of %d train...\n', i, n);
-    [cur_nn_model] = nnetTrain([X_train X_val], [y_train y_val], [10 10], {'tansig', 'tansig', 'tansig'});
+    [cur_nn_model] = nnetTrain([X_train X_val], [y_train y_val], 10, {'tansig', 'tansig'});
     [curr_nn_model_auc, ~] = nnetEval(cur_nn_model, X_train, y_train, X_val, y_val, X_test, y_test);
     
     % Saving
