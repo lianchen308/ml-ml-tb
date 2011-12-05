@@ -91,7 +91,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
         learn_params.max_iter = 1000;
     end
 	
-	for it = 1 : learn_params.max_iter
+    for it = 1 : learn_params.max_iter
 
         %chose best learner
 		models = feval(learn_params.train, X, y, distr, it);
@@ -113,7 +113,11 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 			alpha = s1 * (1 - s1_rev) - s2 * (1 - s2_rev);    
 		   
 			if(sign(alpha) ~= sign(s1 - s2) || (s1 + s2) == 0)
-			  continue;
+                best.fails = best.fails + 1;
+                if (learn_params.show_progress)
+                    fprintf('Iter %d (fail): invalid step out.\n', it);
+                end
+                continue;
 			end
 			
             final_hyp = final_hyp + step_out .* alpha;

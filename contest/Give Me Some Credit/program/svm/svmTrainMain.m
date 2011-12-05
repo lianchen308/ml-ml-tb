@@ -6,7 +6,7 @@ load('../data/binaryData.mat'); % X_train y_train X_val y_val X_test y_test
 X_train = X_train'; y_train = y_train'; X_val = X_val'; y_val = y_val'; X_test = X_test'; y_test = y_test';
 load('binarySvmModelData.mat'); % 'svm_model', 'svm_model_auc', 'svm_c', 'svm_gamma'
 
-use_resample = 1;
+use_resample = 0;
 c_values = logspace(1, 8, 10); gamma_values = logspace(-6, 1, 10); % -> search!
 %c_values = 7742636.8268112773; gamma_values = 0.0000215443; % -> acc:93.6132, auc:0.8506!
 n_find_params = 6000;
