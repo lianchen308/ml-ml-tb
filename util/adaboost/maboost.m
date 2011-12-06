@@ -40,13 +40,15 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 		X_val = learn_params.X_val;
 		y_val = learn_params.y_val;
 	else
-		n = length(y);
-		val_size = round(n*0.3);
-		rand_index = randperm(n);
-		X_val = X(:, rand_index(1:val_size));
-		X = X(:, rand_index(val_size+1:end));
-		y_val = y(:, rand_index(1:val_size));
-		y = y(:, rand_index(val_size+1:end));
+		%n = length(y);
+		%val_size = round(n*0.3);
+		%rand_index = randperm(n);
+		%X_val = X(:, rand_index(1:val_size));
+		%X = X(:, rand_index(val_size+1:end));
+		%y_val = y(:, rand_index(1:val_size));
+		%y = y(:, rand_index(val_size+1:end));
+        X_val = X;
+        y_val = y;
 	end
 	
     best.auc = -1;
