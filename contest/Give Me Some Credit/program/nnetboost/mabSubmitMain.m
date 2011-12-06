@@ -1,3 +1,4 @@
+clc; clear;
 fprintf('Loading submission data...\n');
 % loading data
 load binaryAdaboostModelData.mat; % learners weights
