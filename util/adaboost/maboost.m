@@ -39,16 +39,17 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 	if (hasfield(learn_params, 'X_val') && hasfield(learn_params, 'y_val'))
 		X_val = learn_params.X_val;
 		y_val = learn_params.y_val;
-	else
-		%n = length(y);
-		%val_size = round(n*0.3);
-		%rand_index = randperm(n);
-		%X_val = X(:, rand_index(1:val_size));
-		%X = X(:, rand_index(val_size+1:end));
-		%y_val = y(:, rand_index(1:val_size));
-		%y = y(:, rand_index(val_size+1:end));
-        X_val = X;
-        y_val = y;
+	elseif (hasfield(learn_params, 'validation_ratio'))
+		n = length(y);
+		val_size = round(n*learn_params.validation_ratio);
+		rand_index = randperm(n);
+		X_val = X(:, rand_index(1:val_size));
+		X = X(:, rand_index(val_size+1:end));
+		y_val = y(:, rand_index(1:val_size));
+		y = y(:, rand_index(val_size+1:end));
+    else
+       X_val = X;
+       y_val = y;
 	end
 	
     best.auc = -1;
@@ -117,7 +118,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 			if(sign(alpha) ~= sign(s1 - s2) || (s1 + s2) == 0)
                 best.fails = best.fails + 1;
                 if (learn_params.show_progress)
-                    fprintf('Iter %d (fail): invalid step out.\n', it);
+                    fprintf('Iter %d (fail %d): invalid step out.\n', it, best.fails);
                 end
                 continue;
 			end
