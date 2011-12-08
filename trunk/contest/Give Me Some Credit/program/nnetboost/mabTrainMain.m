@@ -10,12 +10,14 @@ lrn_auc = -1;
 use_pca = 0;
 if (use_pca)
     load('../data/binaryPCAData.mat'); % Z_train y_train Z_val y_val Z_test y_test
-    X_train = Z_train; X_val = Z_val; X_test = Z_test;
+    X_train = Z_train'; X_val = Z_val'; X_test = Z_test';
     load binaryAdaboostModelPCAData.mat; % learners weights lrn_auc
 else
-    load binaryAdaboostModelData.mat; % learners weights lrn_auc
     load('../data/binaryData.mat'); % X_train y_train X_val y_val X_test y_test
+    X_train = X_train'; X_val = X_val'; X_test = X_test';
+    load binaryAdaboostModelData.mat; % learners weights lrn_auc
 end
+y_train = y_train'; y_val = y_val'; y_test = y_test';
 
 cur_learners = learners;
 cur_weights = weights;

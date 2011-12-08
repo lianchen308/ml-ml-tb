@@ -18,8 +18,15 @@ function [X_norm, mu, sigma] = fnorm(X, varargin)
     end
 	
     if (nargs < 2)
-        mu = mean(X, dim);
-        sigma = std(X, 0, dim);
+        if (dim == 1)
+            mu = nanmean(X);
+            sigma = nanstd(X, 0);
+        else
+            mu = nanmean(X');
+            mu = mu';
+            sigma = nanstd(X', 0);
+            sigma = sigma';
+        end
     else
         mu = varargin{1};
         sigma = varargin{2};
