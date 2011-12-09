@@ -3,8 +3,7 @@ fprintf('Loading submission data...\n');
 % loading data
 load binaryAdaboostModelData.mat; % learners weights
 load('../data/binarySubmitData.mat'); % X_submit
-
-
+X_submit = X_submit';
 
 % Saving submit
 fprintf('Running adaboost model on submission data...\n');
