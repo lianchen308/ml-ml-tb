@@ -21,8 +21,6 @@ function [svm_model, svm_auc, svm_c, svm_gamma] = svmgridsearch(X_train, y_train
     else
         X_val_find = X_val;
 		y_val_find = y_val;
-		%X_val_find = [X_train(n_find_params+1:end, :); X_val];
-		%y_val_find = [y_train(n_find_params+1:end, :); y_val];
     end
 	if (~exist('n_actual_train', 'var') || isempty(n_actual_train))
 		n_actual_train = 20000;
@@ -46,7 +44,7 @@ function [svm_model, svm_auc, svm_c, svm_gamma] = svmgridsearch(X_train, y_train
     [~, ~, ~, y_val_auc] = svmpredictw(svm_model, X_val, y_val);
     [~, ~, ~, y_test_auc] = svmpredictw(svm_model, X_test, y_test);
     fprintf('AUC: train auc = %1.4f, val auc = %1.4f, test auc = %1.4f\n', y_train_auc, y_val_auc, y_test_auc);
-    svm_auc = min([y_train_auc y_val_auc y_test_auc]);
+    svm_auc = y_test_auc;
 
 end
 

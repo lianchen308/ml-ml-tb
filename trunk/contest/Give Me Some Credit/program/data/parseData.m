@@ -30,30 +30,36 @@ fprintf('Splitting training and submit data...\n');
 
 % Training: train, validation and test
 n_train = length(y_train);
+n_cut1 = round(0.3*n_train);
+n_cut2 = n_cut1 + round(0.3*n_train);
+n_cut3 = n_cut2 + round(0.2*n_train);
+X_train = X_all_est(1:n_train, :);
+
+X_train1 = X_train(1:n_cut1, :);
+y_train1 = y_train(1:n_cut1, :);
+X_train2 = X_train(n_cut1+1:n_cut2, :);
+y_train2 = y_train(n_cut1+1:n_cut2, :);
+
+X_val    = X_train(n_cut2+1:n_cut3, :);
+y_val    = y_train(n_cut2+1:n_cut3, :);
+
+X_test   = X_train(n_cut3+1:n_train, :);
+y_test   = y_train(n_cut3+1:n_train, :);
+
+% Submission data
 X_submit = X_all_est(n_train + 1 : end, :);
-
-n_cut = round(0.6*n_train);
-n_cut2 = n_cut + round(0.2*n_train);
-X_val = X_all_est(n_cut+1:n_cut2, :);
-y_val = y_train(n_cut+1:n_cut2, :);
-
-X_test = X_all_est(n_cut2+1:n_train, :);
-y_test = y_train(n_cut2+1:n_train, :);
-
-X_train = X_all_est(1:n_cut, :);
-y_train = y_train(1:n_cut, :);
 
 fprintf('Normalization sumary...\n');
 fprintf('\tDimension\tMean\tStd\t\t(training):\n');
-disp([(1:size(X_train,2))'  mean(X_train)' std(X_train)']);
+disp([(1:size(X_train, 2))'  mean(X_train)' std(X_train)']);
 fprintf('\tDimension\tMean\tStd\t\t(submit):\n');
 disp([(1:size(X_submit,2))'  mean(X_submit)' std(X_submit)']);
 
 
 fprintf('Saving data...\n');
-save binaryData.mat X_train y_train X_val y_val X_test y_test X_mu X_std;
+save binaryData.mat X_train1 y_train1 X_train2 y_train2 X_val y_val X_test y_test X_mu X_std;
 save binarySubmitData.mat X_submit X_mu X_std;
-fprintf('Data parsed and saved\n');
+fprintf('Data parsed and saved\n\n');
 
 
 runPCA;

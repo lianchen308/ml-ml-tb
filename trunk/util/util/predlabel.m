@@ -1,5 +1,4 @@
 % function [y_pred, y_prob, y_acc] = predlabel(y, y_out)
-% function [y_pred, y_prob] = predlabel(y_out)
 function [y_pred, y_prob, acc] = predlabel(y, y_out)
     if (~exist('y_out', 'var') || isempty(y_out))
         y_out = y;
