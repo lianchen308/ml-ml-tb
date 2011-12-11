@@ -62,5 +62,5 @@ save binarySubmitData.mat X_submit X_mu X_std;
 fprintf('Data parsed and saved\n\n');
 
 
-runPCA;
+%runPCA;
 toc;
