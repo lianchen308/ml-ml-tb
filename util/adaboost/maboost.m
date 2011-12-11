@@ -12,8 +12,7 @@
 %							where models is a cell array of models
 %						[y_predicted] = learn_params.predict(model, X);
 %                       Additional properties:
-%                        X_val: X used for validation stop. Defaults to 
-%                           20% of training set randomly picked
+%                        X_val: X used for validation stop. 
 %                        y_val: y to be used with X_val.
 %                        show_progress: Print progress to output
 %                        max_fail: max iteration without validation
@@ -43,10 +42,10 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 		n = length(y);
 		val_size = round(n*learn_params.validation_ratio);
 		rand_index = randperm(n);
-		X_val = X(:, rand_index(1:val_size));
-		X = X(:, rand_index(val_size+1:end));
-		y_val = y(:, rand_index(1:val_size));
-		y = y(:, rand_index(val_size+1:end));
+		X_val = X(rand_index(1:val_size), :);
+		X = X(rand_index(val_size+1:end), :);
+		y_val = y(rand_index(1:val_size), :);
+		y = y(rand_index(val_size+1:end), :);
     else
        X_val = X;
        y_val = y;
@@ -59,8 +58,8 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
         learners = {};
         weights = [];
 		n = length(y);
-        distr = ones(1, n) / n;
-        final_hyp = zeros(1, n);
+        distr = ones(n, 1) / n;
+        final_hyp = zeros(n, 1);
     elseif (nargin > 4)
         learners = old_learners;
         weights = old_weights;

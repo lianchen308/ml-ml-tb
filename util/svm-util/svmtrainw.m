@@ -10,7 +10,7 @@ function [model] = svmtrainw(X, y, C, gamma, weights_or_cv, cv)
     end
 			
     if (~exist('weights', 'var') || isempty(weights))
-        weights = ones(size(y));
+        weights = deftrainweight(y);
     end
 	
     if (~exist('cv', 'var') || isempty(cv))
