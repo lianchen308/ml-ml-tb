@@ -6,10 +6,13 @@ load ../data/binaryData.mat;
 load binarySvmModelData.mat;
 
 
-c_values = logspace(1, 8, 10); gamma_values = logspace(-6, 1, 10); % -> search!
+% c_values = 2154.43469003; gamma_values = 0.0002154435; % -> AUC: train=0.8584, val=0.8568, test=0.8617
+c_values = 1000000.00000000; gamma_values = 0.0000100000; % -> AUC: train=0.8558, val=0.8508, test=0.8586
+% c_values = 359381.36638046; gamma_values = 0.0000464159; % -> AUC: train=0.8588, val=0.8564, test=0.8621
+% c_values = logspace(5, 6, 10); gamma_values = logspace(-5, -3, 10); % -> search!
 
 n_find_params = 3000;
-n_actual_train= 30000;
+n_actual_train= 45000;
 cross_validation = 0;
 
 % Training
