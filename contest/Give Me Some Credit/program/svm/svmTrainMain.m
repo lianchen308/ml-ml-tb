@@ -1,9 +1,11 @@
 clear; clc;
 
-svm_model_auc = 0;
+svm_model_auc = -1;
 fprintf('Loading data...\n');
-load ../data/binaryData.mat; 
-load binarySvmModelData.mat;
+load ../data/binaryData.mat;
+if (exist('binarySvmModelData.mat', 'file'))
+    load binarySvmModelData.mat;
+end
 
 
 % c_values = 2154.43469003; gamma_values = 0.0002154435; % -> AUC: train=0.8584, val=0.8568, test=0.8617

@@ -8,7 +8,9 @@ weights = [];
 lrn_auc = 0;
 
 load('../data/binaryData.mat');
-load binaryAdaboostModelData.mat; 
+if (exist('binaryAdaboostModelData.mat', 'file'))
+    load binaryAdaboostModelData.mat; 
+end
 
 cur_learners = learners;
 cur_weights = weights;

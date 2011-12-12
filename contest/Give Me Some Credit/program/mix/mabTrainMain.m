@@ -24,7 +24,7 @@ cur_weights = nnet_mix_weights;
 %training config
 learn_obj.train = 'nnetTrain';
 learn_obj.predict ='nnetBoostSim';
-learn_obj.max_fail = 4;
+learn_obj.max_fail = 6;
 learn_obj.X_val = X_test;
 learn_obj.y_val = y_test;
 
@@ -46,8 +46,10 @@ for i=1:n
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y);
     end
     fprintf('Evaluating complete modest adaboost model...\n');
-    [cur_lrn_auc, cur_lrn_acc] = mabeval(cur_learners, cur_weights, [X_train1; X_train2; X_val], [y_train1; y_train2; y_val], ...
-        X_test, y_test);
+    fprintf('Train1 and validation\n');
+    mabeval(cur_learners, cur_weights, X_train1, y_train1,  X_val, y_val);
+    fprintf('Train2 and test\n');
+    [cur_lrn_auc, cur_lrn_acc] = mabeval(cur_learners, cur_weights, X_train2, y_train2, X_test, y_test);
     learners_hist{i} = cur_learners;
 	weight_hist{i} = cur_weights;
     
