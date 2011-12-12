@@ -1,3 +1,4 @@
+% [y_pred, y_prob, acc, auc] = rfpredict(model, X, y)
 function [y_pred, y_prob, acc, auc] = rfpredict(model, X, y)
 
     if (strcmp('CompactTreeBagger', class(model)) ...

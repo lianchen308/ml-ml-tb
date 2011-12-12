@@ -1,3 +1,4 @@
+% [y_test_auc, y_test_acc] = rfeval(rf_model, X_train, y_train, X_val, y_val, X_test, y_test)
 function [y_test_auc, y_test_acc] = rfeval(rf_model, X_train, y_train, X_val, y_val, X_test, y_test)
 
     fprintf('Evaluating random forest...\n');
