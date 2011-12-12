@@ -1,8 +1,8 @@
 function [nn_model] = nnetTrain(X, y, weigths_or_iteration, ~)
     X = X';
     y = y';
-    nn_config = newff(minmax(X), minmax(y), 18, {'tansig', 'tansig', 'tansig'});
-    nn_config.trainParam.max_fail = 30;
+    nn_config = newff(minmax(X), minmax(y), [18 18], {'tansig', 'tansig', 'tansig'});
+    nn_config.trainParam.max_fail = 10;
     nn_config.trainParam.min_grad = 1e-30;
     nn_config.divideFcn = 'divideblock';
     nn_config.divideParam.trainRatio = 0.6; 

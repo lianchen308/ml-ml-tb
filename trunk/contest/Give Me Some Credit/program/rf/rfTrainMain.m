@@ -7,14 +7,14 @@ if (exist('binaryRfModelData.mat', 'file'))
     load binaryRfModelData.mat; 
 end
 
-n = 5;
+n = 1000;
 for i=1:n
     % Training
     tic;
     fprintf('Model random forest %d of %d train...\n', i, n);
     
     extra_options.sampsize = 4000;
-    [cur_rf_model] = classRF_train([X_train1; X_val], [y_train1; y_val], 5000, 3, extra_options);
+    [cur_rf_model] = classRF_train([X_train1; X_val], [y_train1; y_val], 6000, 3, extra_options);
 
     [curr_rf_model_auc, ~] = rfeval(cur_rf_model, X_train1, y_train1, X_val, y_val, ...
         X_test, y_test);

@@ -33,7 +33,7 @@ learners_hist = cell(0,0);
 weight_hist = cell(0,0);
 retrain = 0;
 X = [X_train2; X_test];
-y = y_train2; y_test];
+y = [y_train2; y_test];
 for i=1:n
     % Training
     tic;

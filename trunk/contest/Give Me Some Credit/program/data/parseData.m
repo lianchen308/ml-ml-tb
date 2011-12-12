@@ -24,7 +24,7 @@ X_all(:, 4) = logsat(X_all(:, 4), 5);
 
 fprintf('Estimating missing values...\n');
 % applies nearest neighboor to estimate missing
-X_all_est = knnimpute(X_all_norm, 2000);
+X_all_est = knnimputeext(X_all_norm, 100);
 fprintf('Missing values estimated...\n');
 
 fprintf('Splitting training and submit data...\n');
