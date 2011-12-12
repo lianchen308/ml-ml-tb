@@ -13,8 +13,8 @@ for i=1:n
     tic;
     fprintf('Model random forest %d of %d train...\n', i, n);
     
-    extra_options.sampsize = 10000;
-    [cur_rf_model] = classRF_train(X_train1, y_train1, 1000, 4, extra_options);
+    extra_options.sampsize = 4000;
+    [cur_rf_model] = classRF_train([X_train1; X_val], [y_train1; y_val], 5000, 3, extra_options);
 
     [curr_rf_model_auc, ~] = rfeval(cur_rf_model, X_train1, y_train1, X_val, y_val, ...
         X_test, y_test);
