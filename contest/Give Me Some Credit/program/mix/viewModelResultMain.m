@@ -29,4 +29,11 @@ viewdata(y_svm, y_knn, y_train2, ...
 viewdata(y_rf, y_knn, y_train2, ...
     'random forest', 'knn', 'random forest x knn');
 
+fid = fopen(sprintf('modelscore.%s.txt', datestr(now, 'yyyy-mm-dd.HH-MM')),'a');
+fprintf(fid,'nnet,%1.4f\n', aucscore(y_train2, y_nnetboost));
+fprintf(fid,'rf,%1.4f\n', aucscore(y_train2, y_rf));
+fprintf(fid,'svm,%1.4f\n', aucscore(y_train2, y_svm));
+fprintf(fid,'knn,%1.4f\n', aucscore(y_train2, y_knn));
+fclose(fid);
+
 fprintf('Done!\n');
