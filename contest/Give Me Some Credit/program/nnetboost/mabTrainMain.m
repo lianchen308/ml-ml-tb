@@ -42,7 +42,16 @@ for i=1:n
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X, y);
     end
     fprintf('Evaluating complete modest adaboost model...\n');
-    [cur_lrn_auc, cur_lrn_acc] = mabeval(cur_learners, cur_weights, X, y, X_test, y_test);
+    fprintf('Train1 and validation: \n');
+    [~, ~] = mabeval(cur_learners, cur_weights, X_train1, y_train1, X_val, y_val);
+    
+    [y_train2_acc, y_train2_auc] = mabscore(cur_learners, cur_weights, X_train2, y_train2);
+    fprintf('Train2 result: acc = %1.4f, auc = %1.4f\n', y_train2_acc, y_train2_auc);
+    [y_test_acc, y_test_auc] = mabscore(cur_learners, cur_weights, X_test, y_test);
+    fprintf('Test result: acc = %1.4f, auc = %1.4f\n', y_test_acc, y_test_auc);
+    
+    cur_lrn_auc = min(y_train2_auc, y_test_auc);
+    
     learners_hist{i} = cur_learners;
 	weight_hist{i} = cur_weights;
     

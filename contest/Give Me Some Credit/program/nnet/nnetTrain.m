@@ -8,7 +8,7 @@ function [nn_model] = nnetTrain(X, y, tp, af)
     nn_config.divideParam.valRatio = 0.25;
     nn_config.divideParam.testRatio = 0.15;
     
-    w = deftrainweight(y);
+    w = ones(size(y));
     
     [nn_model] = train(nn_config, X, y, [], [], w);
 
