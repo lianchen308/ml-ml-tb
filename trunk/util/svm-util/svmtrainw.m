@@ -1,27 +1,32 @@
-% function [model] = svmtrainw(X, y, C, gamma, weights_or_cv, cv)
-function [model] = svmtrainw(X, y, C, gamma, weights_or_cv, cv)
+% function [model] = svmtrainw(X, y, options)
+function [model] = svmtrainw(X, y, opt)
 
-    if (exist('weights_or_cv', 'var') && ~isempty(weights_or_cv))
-        if (isscalar(weights_or_cv))
-            cv = weights_or_cv;
-        else
-            weights = weights_or_cv;
-        end
+    if (~exist('opt', 'var') || isempty(opt))
+        opt.dummy = 1;
     end
-			
-    if (~exist('weights', 'var') || isempty(weights))
-        weights = deftrainweight(y);
+
+    if (~isfield(opt, 'c'))
+        opt.c = 1;
+    end
+    
+    if (~isfield(opt, 'weights'))
+        opt.weights = deftrainweight(y);
+    elseif (isscalar(opt.weights))
+        opt.weights = ones(size(y))*opt.weights;
+    end
+    
+    if (~isfield(opt, 'g'))
+        opt.g = 1/size(X,2);
+    end
+    
+    if (~isfield(opt, 'cv'))
+        opt.cv = 0;
     end
 	
-    if (~exist('cv', 'var') || isempty(cv))
-        cv = 0;
-    end
-	
-	
-	options = sprintf('-q -h 1 -m 1024 -b 1 -c %s -g %s', num2str (C), num2str (gamma));
-	if (cv > 0) 
-		options = sprintf('-v %d %s', cv, options);
+	svmlibopt = sprintf('-q -h 1 -m 1024 -b 1 -c %s -g %s', num2str (opt.c), num2str (opt.g));
+	if (opt.cv > 0) 
+		svmlibopt = sprintf('-v %d %s', opt.cv, svmlibopt);
 	end
-	[model] = libsvmtrain(weights, y, X, options);
+	[model] = libsvmtrain(opt.weights, y, X, svmlibopt);
 
 end

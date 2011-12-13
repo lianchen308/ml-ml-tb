@@ -1,8 +1,15 @@
 % [X_resampled, y_resampled] = gsvmru(X, y, c, gamma, n_batch)
-function [X_resampled, y_resampled] = gsvmru(X_train, y_train, X_val, y_val, c, gamma, n_batch)
+function [X_resampled, y_resampled] = gsvmru(X_train, y_train, X_val, y_val, c, gamma, n_batch, n_min_it)
     
     if (~exist('n_batch', 'var') || isempty(n_batch))
         n_batch = 10000;
+    end
+    if (n_batch > size(y_train, 1))
+        n_batch = size(y_train, 1);
+    end
+    
+    if (~exist('n_min_it', 'var') || isempty(n_min_it))
+        n_min_it = 5;
     end
     
     X_psv = X_train(y_train == 1, :);
@@ -15,7 +22,7 @@ function [X_resampled, y_resampled] = gsvmru(X_train, y_train, X_val, y_val, c, 
     y_nsv = [];
     while (true)
         [X_train, y_train, X_nsv, y_nsv, agg_acc, agg_auc] = aggresample(X_train, y_train, X_val, y_val, X_psv, y_psv, X_nsv, y_nsv, c, gamma, n_batch, i);
-        if (agg_auc > best.auc)
+        if (agg_auc > best.auc || i <= n_min_it)
             best.acc = agg_acc;
             best.auc = agg_auc;
             [best.X_agg, best.y_agg] = uniquex([X_psv; X_nsv], [y_nsv; y_nsv]);
