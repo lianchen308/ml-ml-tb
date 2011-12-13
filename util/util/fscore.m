@@ -6,7 +6,7 @@ function [f_score, precision, recall, accuracy] = fscore(y, y_pred)
 
     true_pos  = length(find(y == y_pred & y_pred == 1));
     false_pos = length(find(y ~= y_pred & y_pred == 1));
-    false_neg = length(find(y ~= y_pred & y_pred == -1));
+    false_neg = length(find(y ~= y_pred & y_pred == 0));
     accuracy  = (length(find(y == y_pred))/length(y))*100;
 
     if (true_pos == 0)
@@ -18,5 +18,4 @@ function [f_score, precision, recall, accuracy] = fscore(y, y_pred)
         recall = true_pos/(true_pos + false_neg);
         f_score = (2*precision*recall)/(precision + recall);
     end
-
 end
