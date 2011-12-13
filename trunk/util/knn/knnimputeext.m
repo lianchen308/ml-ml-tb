@@ -1,11 +1,8 @@
 % imputed = knnimputeext(data, K, knnargs)
 % knnargs is in the same format of knnimpute
-function imputed = knnimputeext(data, K, distance_fn)
+function imputed = knnimputeext(data, K)
     if (~exist('K', 'var') || isempty(K))
         K = 1;
-    end
-    if (~exist('distance_fn', 'var') || isempty(distance_fn))
-        distance_fn = 'euclidean';
     end
     
     nanVals = isnan(data);
@@ -13,16 +10,28 @@ function imputed = knnimputeext(data, K, distance_fn)
     nans = sum(nanVals,2) > 0;
     dataNoNans = data(noNans, :);
     dataNans = data(nans, :);
+    
+    % set nancols to 0
     nanVals = isnan(dataNans);
     dataNans(nanVals) = 0;
     
-    [idx, dist] = knnsearch(dataNoNans, dataNans, 'dist', distance_fn, 'k', K);
-    dist = 1 ./ dist;
+    % find nancols
+    [~, nan_cols] = find(nanVals);
+    nan_cols = unique(nan_cols);
+    
+    for col=nan_cols
+        [idx, ~] = knnsearch(dataNoNans, dataNans, ...
+            'k', K, 'dist', 'euclidean', 'IncludeTies', true);
+    end
     
     for r=1:size(dataNans, 1)
         nan_idx = find(nanVals(r, :));
+        dist_vals = dataNoNans(idx{r, :}, :);
+        dist_vals(:, nan_idx) = 0;
+        dist_vals = sum(bsxfun(@minus, dist_vals, dataNans(r, :)).^2, 2);
+        dist_vals = 1./dist_vals;
         for c=nan_idx
-            dataNans(r, c) = wnanmean(dataNoNans(idx(r, :), c), dist(r, :));
+            dataNans(r, c) = wnanmean(dataNoNans(idx{r, :}, c), dist_vals);
         end
     end
 

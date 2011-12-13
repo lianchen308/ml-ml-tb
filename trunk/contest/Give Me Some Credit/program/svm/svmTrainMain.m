@@ -10,8 +10,9 @@ end
 
 % c_values = 2154.43469003; gamma_values = 0.0002154435; % -> AUC: train=0.8584, val=0.8568, test=0.8617
 % c_values = 1000000.00000000; gamma_values = 0.0000100000; % -> AUC: train=0.8574, val=0.8561, test=0.8614
-c_values = 359381.36638046; gamma_values = 0.0000464159; % -> AUC: train=0.8588, val=0.8564, test=0.8621
-% c_values = logspace(5, 6, 10); gamma_values = logspace(-5, -3, 10); % -> search!
+% c_values = 359381.36638046; gamma_values = 0.0000464159; % -> AUC: train=0.8588, val=0.8564, test=0.8621
+c_values = 278255.9402; gamma_values = 1.6681e-005;
+%c_values = logspace(1, 8, 10); gamma_values = logspace(-7, -1, 10); % -> search!
 n_find_params = 3000;
 n_actual_train= 45000;
 cross_validation = 0;

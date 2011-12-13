@@ -4,7 +4,7 @@ function [y_pred, y_prob, acc, auc] = knnpredict(knn_model, X, y)
     n_rows = size(X, 1);
     impute_data = [X (NaN*ones(n_rows, 1))];
     
-    y_pred = knnimputeext([impute_data; knn_model.data], knn_model.K, knn_model.distance_fn);
+    y_pred = knnimputeext([impute_data; knn_model.data], knn_model.K);
     y_pred = y_pred(1:n_rows, end); 
     y_prob = (y_pred + 1)/2;
     
