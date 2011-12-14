@@ -59,7 +59,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         
 {
 	int i;
-	if (nrhs!=10)
+	if (nrhs!=11)
 		mexErrMsgIdAndTxt("mex_regressionRF_predict",
                 "I am stupid, I need 9 parameters");
 	
@@ -79,18 +79,38 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	int* treeSize = (int*)mxGetData(prhs[8]);
 	int ntree=mxGetScalar(prhs[9]);
 	
-	plhs[0]=mxCreateNumericMatrix(n_size,1,mxDOUBLE_CLASS,0);
+	plhs[0]=mxCreateNumericMatrix(n_size,1,mxDOUBLE_CLASS,mxREAL);
 	double* ypred = (double*)mxGetData(plhs[0]);
 	
 	int mdim = p_size;
-	int *cat; cat = (int*) calloc(p_size, sizeof(int)); for ( i=0;i<p_size;i++) cat[i] = 1;
+	int *cat; cat = (int*) mxCalloc(p_size, sizeof(int)); for ( i=0;i<p_size;i++) cat[i] = 1;
 	int maxcat =1;
-	int keepPred=0;
-	double allPred=0;
+	int keepPred=(int)*((double*)mxGetData(prhs[10]));
+	double* allPred;
+    
+    int dims_ntest[2];
+    int ntest = n_size;
+    int ndim = 2;
+    
+    //mexPrintf("keeppred %d\n",keepPred);
+    
+    if (keepPred) {
+        dims_ntest[0]=ntest;
+        dims_ntest[1]=ntree;
+        plhs[1] = mxCreateNumericArray(ndim, dims_ntest, mxDOUBLE_CLASS, mxREAL);
+        allPred = (double*)mxGetPr(plhs[1]);
+    } else {
+        dims_ntest[0]=ntest;
+        dims_ntest[1]=1;
+        plhs[1] = mxCreateNumericArray(ndim, dims_ntest, mxDOUBLE_CLASS, mxREAL);
+        allPred = (double*)mxGetPr(plhs[1]);
+    }
+    
+    
 	int doProx=0;
 	double proxMat=0;
 	int nodes=0;
-	int *nodex; nodex=(int*)calloc(n_size,sizeof(int));
+	int *nodex; nodex=(int*)mxCalloc(n_size,sizeof(int));
 	
     if (DEBUG_ON){
         printf("predict: val's of first example: ");
@@ -103,12 +123,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
                &ntree, lDaughter, rDaughter,
                nodestatus, &nrnodes, xsplit,
                avnodes, mbest, treeSize, cat,
-               maxcat, &keepPred, &allPred, doProx,
+               maxcat, &keepPred, allPred, doProx,
                &proxMat, &nodes, nodex);
     
     //free the allocations
-    free(cat);
-    free(nodex);
+    mxFree(cat);
+    mxFree(nodex);
     return;
 }
 #endif

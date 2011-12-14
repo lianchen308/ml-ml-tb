@@ -9,14 +9,12 @@
 
 function compile_windows
 
-% %need to do tricks for making Makfile run on windows as one needs cygwin.
-% %so instead use mex to compile everything up.
-% 
-% system('del *.mexw32;');
-% 
-% mex CFLAGS="\$CFLAGS -std=c99" -largeArrayDims src/cokus.cpp src/reg_RF.cpp src/mex_regressionRF_train.cpp   -DMATLAB -output mexRF_train
-% mex CFLAGS="\$CFLAGS -std=c99" -largeArrayDims src/cokus.cpp src/reg_RF.cpp src/mex_regressionRF_predict.cpp   -DMATLAB  -output mexRF_predict
-% 
-% fprintf('\n Mex`s compiled correctly\n')
+%need to do tricks for making Makfile run on windows as one needs cygwin.
+%so instead use mex to compile everything up.
 
-fprintf('As this package has precompiled mex files ignore this file i.e. compile_windows.m\n')
+system('del *.mexw32;');
+
+mex src/cokus.cpp src/reg_RF.cpp src/mex_regressionRF_train.cpp   -DMATLAB -output mexRF_train
+mex src/cokus.cpp src/reg_RF.cpp src/mex_regressionRF_predict.cpp   -DMATLAB  -output mexRF_predict
+
+fprintf('\n Mex`s compiled correctly\n')

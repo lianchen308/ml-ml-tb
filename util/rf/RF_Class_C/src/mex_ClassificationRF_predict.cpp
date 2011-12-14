@@ -1,6 +1,5 @@
 #include <math.h>
 #include "mex.h"
-#include "memory.h"
 
 #define DEBUG_ON 0
 void classForest(int *mdim, int *ntest, int *nclass, int *maxcat,
@@ -26,7 +25,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     int nclass =  (int)mxGetScalar(prhs[11]);
     
-    int* cat = (int*)calloc(p_size,sizeof(int));
+    int* cat = (int*)mxCalloc(p_size,sizeof(int));
     for(i=0;i<p_size;i++) cat[i]=1;
     
     int maxcat=1;
@@ -36,7 +35,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     int addclass = 0;
     int importance=0;
     int localImp=0;
-    int proximity=0;
+    int proximity=(int)mxGetScalar(prhs[13]);
     int oob_prox=0;
     int do_trace=1;
     int keep_forest=1;
@@ -70,28 +69,38 @@ void mexFunction( int nlhs, mxArray *plhs[],
     double xts=1;
     int clts = 1; 
     int ntest = n_size;
-    double* countts;// = (double*) calloc(nclass * ntest,sizeof(double));
+    double* countts;// = (double*) mxCalloc(nclass * ntest,sizeof(double));
     int outclts = 1;
     int labelts=0;
     double proxts=1;
     double errts=1;
-    //int* inbag = (int*) calloc(n_size,sizeof(int));
+    //int* inbag = (int*) mxCalloc(n_size,sizeof(int));
     int* jts; 
     int* jet;
     int keepPred=(int)mxGetScalar(prhs[12]);
-    int intProximity=0;
     int nodes=0;
     int* nodexts;
     if (nodes)
-        nodexts = (int*)calloc(ntest*ntree,sizeof(int));
+        nodexts = (int*)mxCalloc(ntest*ntree,sizeof(int));
     else
-        nodexts = (int*)calloc(ntest,sizeof(int));
+        nodexts = (int*)mxCalloc(ntest,sizeof(int));
     
     double *proxMat;
-    if(proximity)
-        proxMat = (double*)calloc(ntest*ntest,sizeof(double));
-    else{
-        proxMat = (double*)calloc(1,sizeof(double));
+    int ndim=2;
+    int dims_ntest[]={1,1};
+    
+    if(proximity){
+        //proxMat = (double*)mxCalloc(ntest*ntest,sizeof(double));
+        dims_ntest[0] = ntest;
+        dims_ntest[1] = ntest;
+        plhs[3] = mxCreateNumericArray(ndim, dims_ntest, mxDOUBLE_CLASS, mxREAL);
+        proxMat = (double*)mxGetData(plhs[3]);
+    }else{
+        dims_ntest[0] = 1;
+        dims_ntest[1] = 1;
+        plhs[3] = mxCreateNumericArray(ndim, dims_ntest, mxDOUBLE_CLASS, mxREAL);
+        proxMat = (double*)mxGetData(plhs[3]);
+        //proxMat = (double*)mxCalloc(1,sizeof(double));
         proxMat[0]=1;
     }
     int* treeSize = ndbigtree;
@@ -106,11 +115,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexPrintf("maxcat %d\n",maxcat);
         mexPrintf("nrnodes %d\n",nrnodes);
         mexPrintf("keepPred %d\n",keepPred);
-        mexPrintf("intProxmity %d\n",intProximity);
+        //mexPrintf("intProxmity %d\n",intProximity);
     }
     
-    int ndim=2;
-    int dims_ntest[]={ntest,1};
+    dims_ntest[0] = ntest;
+    dims_ntest[1] = 1;
     plhs[0] = mxCreateNumericArray(ndim, dims_ntest, mxINT32_CLASS, mxREAL);
     
     dims_ntest[0]=nclass;
@@ -137,7 +146,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         pid, cutoff, countts, treemap,
         nodestatus, cat, nodeclass, jts,
         jet, bestvar, nodexts, treeSize,
-        &keepPred, &intProximity, proxMat, &nodes);
+        &keepPred, &proximity, proxMat, &nodes);
    
     if (DEBUG_ON) { 
         mexPrintf("\n\n\nntest %d\n",ntest);
@@ -148,7 +157,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexPrintf("maxcat %d\n",maxcat);
         mexPrintf("nrnodes %d\n",nrnodes);
         mexPrintf("keepPred %d\n",keepPred);
-        mexPrintf("intProxmity %d\n",intProximity);
+        //mexPrintf("intProxmity %d\n",intProximity);
         mexPrintf("countts 0x%x\n",countts);
         mexPrintf("cat 0x%x\n",cat);
         mexPrintf("jts 0x%x\n",jts);
@@ -157,7 +166,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
     fflush(stdout);
     
-    free(cat);
-    free(nodexts);
-    free(proxMat);    
+    mxFree(cat);
+    mxFree(nodexts);
+    //free(proxMat);    
 }

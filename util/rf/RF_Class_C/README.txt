@@ -3,8 +3,6 @@ Added by Abhishek Jaiantilal ( abhishek.jaiantilal@colorado.edu )
 License: GPLv2
 Version: 0.02
 
-Added Binaries for Windows 32/64 bit
-Commented out compile_windows.m, if you feel upto it, remove the comments and recompile
 
 CLASSIFICATION BASED RANDOMFOREST
 

@@ -90,23 +90,42 @@
 %       in the same terminal nodes).
 % errtr = first column is OOB Err rate, second is for class 1 and so on
 
-function model=classRF_train(X,Y,ntree,mtry, extra_options)
+function model=classRF_train(X,Y,ntree,mtry, extra_options,Xtst,Ytst)
     DEFAULTS_ON =0;
-    %DEBUG_ON=0;
+%    DEBUG_ON=1;
 
+    if exist('Xtst','var') && exist('Ytst','var') 
+        if(size(Xtst,1)~=length(Ytst))
+            error('Size of Xtst and Ytst dont match');
+        end
+        fprintf('Test data available\n');
+        tst_available=1;
+        tst_size = length(Ytst);
+    else
+        Xtst=1;
+        Ytst=1;
+        tst_available=0;
+        tst_size=0;
+    end
+    
     TRUE=1;
     FALSE=0;
     
-    orig_labels = sort(unique(Y));
+    orig_labels = sort(unique([Y; Ytst]));
     Y_new = Y;
+    Y_new_tst = Ytst;
     new_labels = 1:length(orig_labels);
     
     for i=1:length(orig_labels)
         Y_new(find(Y==orig_labels(i)))=Inf;
         Y_new(isinf(Y_new))=new_labels(i);
+        
+        Y_new_tst(find(Ytst==orig_labels(i)))=Inf;
+        Y_new_tst(isinf(Y_new_tst))=new_labels(i);
     end
     
     Y = Y_new;
+    Ytst = Y_new_tst;
     
     if exist('extra_options','var')
         if isfield(extra_options,'DEBUG_ON');  DEBUG_ON = extra_options.DEBUG_ON;    end
@@ -125,6 +144,7 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
         if isfield(extra_options,'do_trace');  do_trace = extra_options.do_trace;       end
         %if isfield(extra_options,'corr_bias');  corr_bias = extra_options.corr_bias;       end
         if isfield(extra_options,'keep_inbag');  keep_inbag = extra_options.keep_inbag;       end
+		if isfield(extra_options,'print_verbose_tree_progression');  print_verbose_tree_progression = extra_options.print_verbose_tree_progression;       end
     end
     keep_forest=1; %always save the trees :)
     
@@ -151,6 +171,7 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
     if ~exist('do_trace','var');    do_trace = FALSE; end
     %if ~exist('corr_bias','var');   corr_bias = FALSE; end
     if ~exist('keep_inbag','var');  keep_inbag = FALSE; end
+    if ~exist('print_verbose_tree_progression','var');  print_verbose_tree_progression = FALSE; end
     
 
     if ~exist('ntree','var') | ntree<=0
@@ -167,6 +188,8 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
         error('need atleast two classes for classification');
     end
     [N D] = size(X);
+    n_size = N;
+    p_size = D;
     
     if N==0; error(' data (X) has 0 rows');end
     
@@ -189,7 +212,10 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
         if ~addclass, 
             addclass=TRUE;
         end
-        error('have to fill stuff here')
+        Y_new = [ones(N,1); ones(N,1)*2];
+        Y = Y_new;
+        X = [X; X];
+        %error('have to fill stuff here')
     end
     
     if ~isempty(find(isnan(X)));  error('NaNs in X');   end
@@ -276,9 +302,9 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
     %i handle the below in the mex file
     %somewhere near line 157 in randomForest.default.R
     if addclass
-%        nsample = 2*n;
+        nsample = 2*n_size;
     else
-%        nsample = n;
+        nsample = n_size;
     end
     
     Stratify = (length(sampsize)>1);
@@ -341,14 +367,16 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
         fprintf('classwt %f\n',classwt);
         fprintf('cutoff %f\n',cutoff);
         fprintf('nodesize %f\n',nodesize);
+        fprintf('print verbose %f\n',print_verbose_tree_progression);
     end    
     
     
     [nrnodes,ntree,xbestsplit,classwt,cutoff,treemap,nodestatus,nodeclass,bestvar,ndbigtree,mtry ...
-        outcl, counttr, prox, impmat, impout, impSD, errtr, inbag] ...
+        outcl, counttr, prox, impmat, impout, impSD, errtr, inbag, outclts, proxts, errts] ...
         = mexClassRF_train(X',int32(Y_new),length(unique(Y)),ntree,mtry,int32(ncat), ... 
                            int32(maxcat), int32(sampsize), strata, Options, int32(ipi), ...
-                           classwt, cutoff, int32(nodesize),int32(nsum));
+                           classwt, cutoff, int32(nodesize),int32(nsum), int32(n_size), int32(p_size), int32(nsample),...
+                           int32(tst_available), Xtst',int32(Ytst),int32(tst_size), int32(print_verbose_tree_progression));
  	model.nrnodes=nrnodes;
  	model.ntree=ntree;
  	model.xbestsplit=xbestsplit;
@@ -363,10 +391,16 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
     model.orig_labels=orig_labels;
     model.new_labels=new_labels;
     model.nclass = length(unique(Y));
-    model.outcl = outcl;
+    model.outcl = outcl;        %predicted label on training
+    model.outclts = outclts;    %predicted label on test
     model.counttr = counttr;
     if proximity
         model.proximity = prox;
+        if tst_available
+            model.proximity_tst = proxts;
+        else
+            model.proximity_tst = [];
+        end
     else
         model.proximity = [];
     end
@@ -374,6 +408,7 @@ function model=classRF_train(X,Y,ntree,mtry, extra_options)
     model.importance = impout;
     model.importanceSD = impSD;
     model.errtr = errtr';
+    model.errts = errts';
     model.inbag = inbag;
     model.votes = counttr';
     model.oob_times = sum(counttr)';

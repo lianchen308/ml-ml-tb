@@ -32,6 +32,8 @@ n = 1000;
 retrain = 0;
 X_train = [X_train2; X_test];
 y_train = [y_train2; y_test];
+X_train_old = [X_train1; X_val];
+y_train_old = [y_train1; y_val];
 for i=1:n
     % Training
     tic;
@@ -44,12 +46,12 @@ for i=1:n
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X_train, y_train);
     end
     fprintf('Evaluating complete modest adaboost model...\n');
-    fprintf('Train 1 and validation\n');
-    [cur_lrn_auc_old, ~] = mabeval(cur_learners, cur_weights, X_train1, y_train1,  X_val, y_val);
     fprintf('Train 2 and test\n');
-    [cur_lrn_auc, ~] = mabeval(cur_learners, cur_weights, X_train2, y_train2, X_test, y_test);
+    mabeval(cur_learners, cur_weights, X_train2, y_train2, X_test, y_test);
+    fprintf('Train2+Test and Train1+Val\n');
+    [cur_lrn_auc_old, ~, cur_lrn_auc] = mabeval(cur_learners, cur_weights, X_train, y_train, X_train_old, y_train_old);
     
-    cur_lrn_acc = min(cur_lrn_auc, cur_lrn_auc_old);
+    cur_lrn_auc = min(cur_lrn_auc, cur_lrn_auc_old - 0.005);
     % Saving
     if (cur_lrn_auc > nnet_mix_lrn_auc)
         fprintf('Saving adaboost model...\n');

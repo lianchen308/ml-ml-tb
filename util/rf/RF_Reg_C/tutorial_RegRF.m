@@ -234,4 +234,22 @@ Y_tst = Y(randvector(401:end));
     Y_hat = regRF_predict(X_tst,model);
     fprintf('\nexample 16: MSE rate %f\n',   sum((Y_hat-Y_tst).^2));
     
-    
+
+% example 17: keep all tree predictions (returns prediction_per_tree a Ntst x Ntree matrix)
+    clear extra_options
+    model = regRF_train(X_trn,Y_trn,100,2);
+    test_options.predict_all=1;
+    [Y_hat,prediction_per_tree] = regRF_predict(X_tst,model,test_options);
+    fprintf('\nexample 17: MSE rate %f\n',   sum((Y_hat-Y_tst).^2));
+
+% example 18: print after every tree. helpful when there is lots of data
+% and tree creation is slow
+    clear extra_options
+    extra_options.print_verbose_tree_progression = 1; %(Default = 0)
+   
+    model = regRF_train(X_trn,Y_trn, 100, 4, extra_options);
+    Y_hat = regRF_predict(X_tst,model);
+    fprintf('\nexample 18: MSE rate %f\n',   sum((Y_hat-Y_tst).^2));    
+
+clear extra_options
+        
