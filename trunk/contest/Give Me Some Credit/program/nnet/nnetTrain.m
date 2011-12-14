@@ -1,4 +1,4 @@
-function [nn_model] = nnetTrain(X, y, tp, af)
+function [nn_model] = nnetTrain(X, y, tp, af, w)
     
     nn_config = newff(minmax(X), minmax(y), tp, af);
     nn_config.trainParam.max_fail = 30;
@@ -7,8 +7,6 @@ function [nn_model] = nnetTrain(X, y, tp, af)
     nn_config.divideParam.trainRatio = 0.6; 
     nn_config.divideParam.valRatio = 0.25;
     nn_config.divideParam.testRatio = 0.15;
-    
-    w = ones(size(y));
     
     [nn_model] = train(nn_config, X, y, [], [], w);
 

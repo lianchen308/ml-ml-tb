@@ -1,21 +1,27 @@
 clear; clc;
 fprintf('Loading data...\n');
 
+nn_model_auc = -1;
 load('../data/binaryData.mat');
-X_train = X_train1'; X_val = X_val'; X_test = X_test';
-y_train = y_train1'; y_val = y_val'; y_test = y_test';
+X_train = [X_train1' X_val']; X_train1 = X_train1'; X_val = X_val'; X_test = [X_test' X_train2'];
+y_train = [y_train1' y_val']; y_train1 = y_train1'; y_val = y_val'; y_test = [y_test' y_train2'];
 
-load binaryNnetModelData.mat;
+if (exist('binaryNnetModelData.mat', 'file'))
+    load binaryNnetModelData.mat;
+end
 
 n = 100;
 model_hist = cell(n, 1);
 auc_hist = zeros(n, 1);
+weights = deftrainweight(y_train); % ones(size(y_train));
+weights(y_train == 1) = weights(y_train == 1)*1.2;
+    
 for i=1:n
     % Training
     tic;
     fprintf('Model nnet %d of %d train...\n', i, n);
-    [cur_nn_model] = nnetTrain([X_train X_val], [y_train y_val], 15, {'tansig', 'tansig'});
-    [curr_nn_model_auc, ~] = nnetEval(cur_nn_model, X_train, y_train, X_val, y_val, X_test, y_test);
+    [cur_nn_model] = nnetTrain(X_train, y_train, 18, {'tansig', 'tansig'}, weights);
+    [curr_nn_model_auc, ~] = nnetEval(cur_nn_model, X_train1, y_train1, X_val, y_val, X_test, y_test);
     
     % Saving
     if (curr_nn_model_auc > nn_model_auc)

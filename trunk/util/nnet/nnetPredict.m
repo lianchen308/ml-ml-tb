@@ -1,3 +1,4 @@
+% [y_pred, y_prob, acc, auc] = nnetPredict(model, X, y)
 function [y_pred, y_prob, acc, auc] = nnetPredict(model, X, y)
         
    % Probability
