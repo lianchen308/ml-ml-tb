@@ -2,7 +2,7 @@
 %   boosted commitee
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %
-%    result = mabclassify(learners, weights, X)
+%    result = mabclassify(learners, weights, X, reescale)
 %    ---------------------------------------------------------------------------------
 %    Arguments:
 %           learners - cell array of learners
