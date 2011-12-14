@@ -5,6 +5,11 @@ function [y_pred, y_prob, acc, auc] = rfpredict(model, X, y)
     if (strcmp('CompactTreeBagger', class(model)) ...
             || strcmp('TreeBagger', class(model))) 
         [~, y_prob] = predict(model, X);
+    elseif (length(model) > 1)
+        [y_class y_prob]= eval_Stochastic_Bosque(X, model, 'oobe', 1);
+        y_prob = y_prob'- 1;
+        y_prob = sum(y_prob, 2)/size(y_prob,2);
+        y_prob = [(1-y_prob) y_prob];
     else
         [y_class, y_prob] = classRF_predict(X, model);
         y_prob = bsxfun(@rdivide, y_prob, sum(y_prob, 2));

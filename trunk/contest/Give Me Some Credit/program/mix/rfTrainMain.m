@@ -20,13 +20,14 @@ X_prev = [X_train1; X_val];
 y_prev = [y_train1; y_val];
 
 if (exist('binaryMixRfModelData.mat', 'file'))
-    load binaryMixRfModelData.mat; 
+    load binaryMixRfModelData.mat;
+    clear mix_rf_model;
 end
 
-sampsize = [30000];
+sampsize = [15000];
 n_sampsize = length(sampsize);
 
-trees = [30000];
+trees = [12000];
 n_trees = length(trees);
 
 mtry = 4;

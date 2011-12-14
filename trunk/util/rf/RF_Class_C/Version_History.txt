@@ -1,8 +1,5 @@
 CHANGES
 
-Added Binaries for Windows 32/64 bit
-Commented out compile_windows.m, if you feel upto it, remove the comments and recompile
-
 svn-v8?
 Added almost 95% of the total options provided by the R-package to classification.
 Added tutorial for classification based RF in tutorial_ClassRF.m

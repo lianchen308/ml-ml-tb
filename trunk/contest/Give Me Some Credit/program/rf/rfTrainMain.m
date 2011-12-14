@@ -14,52 +14,33 @@ if (exist('binaryRfModelData.mat', 'file'))
     clear rf_model;
 end
 
-sampsize = length(y_train1);
+sampsize = 12000;
 n_sampsize = length(sampsize);
 
-trees = [2000];
+trees = 16000;
 n_trees = length(trees);
 
 mtry = 3;
 n_mtrys = length(mtry);
 
 
-n = 1;
+n = 10;
 i_samplesize = 1;
 i_tree = 1;
 i_dims = 1;
 
-matlabpool size;
-if (ans == 0) %#ok<NOANS>
-  matlabpool open 4;
-  poolsize = 4;
-else
-   poolsize = ans;  %#ok<NOANS>
-end 
-
-extra_options.UseParallel = 'always';
-extra_options.UseSubstreams = 'always';
-extra_options.Streams = RandStream.create('mrg32k3a','NumStreams',poolsize);
-
-%extra_options.importance = 1;
+extra_options.print_verbose_tree_progression = 1;
 for i=1:n
     % Training
     tic;
     fprintf('Model random forest %d of %d train...\n', i, n);
     fprintf('Sample size = %d, ntree = %d, mtry = %d...\n', sampsize(i_samplesize), trees(i_tree), mtry(i_dims));
     
-    %extra_options.sampsize = sampsize(i_samplesize);
-    %[cur_rf_model] = classRF_train(X_train, y_train, trees(i_tree), mtry(i_dims), extra_options);
+    extra_options.sampsize = sampsize(i_samplesize);
+    [cur_rf_model] = classRF_train(X_train, y_train, trees(i_tree), mtry(i_dims), extra_options);
 
-     [cur_rf_model] = TreeBagger(trees(i_tree), X_train, y_train, 'nvartosample', mtry(i_dims), ...
-         'options', extra_options, 'nprint', round(trees(i_tree))/10, 'prune', 'off', ...
-         'fboot', sampsize/length(y_train));
-     cur_rf_model = compact(cur_rf_model);
     [curr_rf_model_auc, ~] = rfeval(cur_rf_model, X_train1, y_train1, X_val, y_val, ...
         X_test, y_test);
-    
-%     fprintf('Importance matrix...\n');
-%     disp(cur_rf_model.importance);
     
     % Saving
     if (curr_rf_model_auc > rf_model_auc)
