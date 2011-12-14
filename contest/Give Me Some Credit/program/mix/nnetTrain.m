@@ -11,7 +11,7 @@ function [nn_model] = nnetTrain(X, y, weigths_or_iteration, ~)
     
     %nn_weigths = ones(size(y));
     nn_weigths = deftrainweight(y); % ones(size(y)); 
-    nn_weigths(y == 1) = nn_weigths(y == 1)*0.9;
+    nn_weigths(y == 1) = nn_weigths(y == 1)*0.95;
     
     if (~isscalar(weigths_or_iteration))
         nn_weigths = nn_weigths.*weigths_or_iteration';

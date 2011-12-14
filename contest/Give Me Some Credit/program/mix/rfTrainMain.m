@@ -21,14 +21,14 @@ if (exist('binaryMixRfModelData.mat', 'file'))
     clear mix_rf_model;
 end
 
-sampsize = [1000 2000 3000 5000];
+sampsize = [1000 2000 3000 5000 10000];
 n_sampsize = length(sampsize);
 
 
-trees = [500 1000 2000 4000 8000 12000];
+trees = [2000 4000 8000 12000];
 n_trees = length(trees);
 
-mtry = [1 2 3];
+mtry = 1;
 n_mtrys = length(mtry);
 
 
@@ -37,6 +37,7 @@ i_samplesize = 1;
 i_tree = 1;
 i_dims = 1;
 
+extra_options.classwt = [1 20];
 for i=1:n
     tic;
     fprintf('Model random forest %d of %d train...\n\n', i, n);
