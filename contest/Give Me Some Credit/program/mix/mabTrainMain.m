@@ -9,10 +9,11 @@ nnet_mix_lrn_auc = -1;
 
 load ../data/binaryData.mat;
 load binaryMixData.mat;
-X_train1 = X_train1_mix;
-X_train2 = X_train2_mix;
-X_val = X_val_mix;
-X_test = X_test_mix;
+start = 1;
+X_train1 = X_train1_mix(:, start:end);
+X_train2 = X_train2_mix(:, start:end);
+X_val = X_val_mix(:, start:end);
+X_test = X_test_mix(:, start:end);
 
 if (exist('binaryMixBoostModelData.mat', 'file'))
     load binaryMixBoostModelData.mat;
@@ -29,7 +30,7 @@ learn_obj.X_val = X_test;
 learn_obj.y_val = y_test;
 
 n = 1000;
-retrain = 0;
+retrain = 1;
 X_train = [X_train2; X_test];
 y_train = [y_train2; y_test];
 X_train_old = [X_train1; X_val];
@@ -40,6 +41,7 @@ for i=1:n
     fprintf('Mixed model adaboost %d of %d train...\n', i, n);
     
     if (retrain)
+        mabhisteval(nnet_mix_learners, nnet_mix_weights, X_train, y_train, X_test, y_test) ;
         [cur_learners, cur_weights, ~] = maboost(learn_obj, X_train, y_train, nnet_mix_weights, nnet_mix_learners);
         retrain = 0;
     else

@@ -14,22 +14,22 @@ if (exist('binaryRfModelData.mat', 'file'))
     clear rf_model;
 end
 
-sampsize = 12000;
+sampsize = [4000 8000];
 n_sampsize = length(sampsize);
 
-trees = 16000;
+trees = [2000 5000 10000];
 n_trees = length(trees);
 
 mtry = 3;
 n_mtrys = length(mtry);
 
 
-n = 10;
+n = 1000;
 i_samplesize = 1;
 i_tree = 1;
 i_dims = 1;
 
-extra_options.print_verbose_tree_progression = 1;
+extra_options.replace = 0;
 for i=1:n
     % Training
     tic;
