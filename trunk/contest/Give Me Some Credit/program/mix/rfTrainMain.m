@@ -13,19 +13,19 @@ X_test   = X_test_mix(:, 11:end);
 
 X_prev = [X_train1; X_val];
 y_prev = [y_train1; y_val];
-X_train = [X_train2; ];
-y_train = [y_train2; ];
+X_train = [X_train2; X_test];
+y_train = [y_train2; y_test];
 
 if (exist('binaryMixRfModelData.mat', 'file'))
     load binaryMixRfModelData.mat;
     clear mix_rf_model;
 end
 
-sampsize = [1000 2000 3000 5000 10000];
+sampsize = 2000;% [1000 2000 3000 5000 10000];
 n_sampsize = length(sampsize);
 
 
-trees = [2000 4000 8000 12000];
+trees = 750;% 4000 8000 12000];
 n_trees = length(trees);
 
 mtry = 1;
@@ -37,7 +37,7 @@ i_samplesize = 1;
 i_tree = 1;
 i_dims = 1;
 
-extra_options.classwt = [1 20];
+%extra_options.classwt = [1 5];
 for i=1:n
     tic;
     fprintf('Model random forest %d of %d train...\n\n', i, n);

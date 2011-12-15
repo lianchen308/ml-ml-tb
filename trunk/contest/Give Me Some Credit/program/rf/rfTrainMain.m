@@ -14,10 +14,10 @@ if (exist('binaryRfModelData.mat', 'file'))
     clear rf_model;
 end
 
-sampsize = [4000 8000];
+sampsize = [1000 2000 4000 8000];
 n_sampsize = length(sampsize);
 
-trees = [2000 5000 10000];
+trees = [2000 5000 7500 10000];
 n_trees = length(trees);
 
 mtry = 3;
@@ -30,6 +30,7 @@ i_tree = 1;
 i_dims = 1;
 
 extra_options.replace = 0;
+extra_options.classwt = [1 15];
 for i=1:n
     % Training
     tic;
@@ -39,7 +40,7 @@ for i=1:n
     extra_options.sampsize = sampsize(i_samplesize);
     [cur_rf_model] = classRF_train(X_train, y_train, trees(i_tree), mtry(i_dims), extra_options);
 
-    [curr_rf_model_auc, ~] = rfeval(cur_rf_model, X_train1, y_train1, X_val, y_val, ...
+    [~, curr_rf_model_auc] = rfeval(cur_rf_model, X_train1, y_train1, X_val, y_val, ...
         X_test, y_test);
     
     % Saving
