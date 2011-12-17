@@ -27,7 +27,7 @@ function imputed = knnimputeext(data, K, isDiscrete, weights)
     dataNans(nanVals) = 0;
     
     idx = knnsearch(dataNoNans, dataNans, ...
-            'k', 20*K, 'dist', 'euclidean', 'IncludeTies', true);
+            'k', 50*K, 'dist', 'euclidean', 'IncludeTies', true);
     
     for r=1:size(dataNans, 1)
         knnIdx = idx{r, :};
