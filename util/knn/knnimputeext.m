@@ -1,6 +1,6 @@
 % imputed = knnimputeext(data, K, knnargs)
 % knnargs is in the same format of knnimpute
-function imputed = knnimputeext(data, K, is_discrete)
+function imputed = knnimputeext(data, K, is_discrete, weights)
     if (~exist('K', 'var') || isempty(K))
         K = 1;
     end
@@ -8,6 +8,13 @@ function imputed = knnimputeext(data, K, is_discrete)
     if (~exist('is_discrete', 'var') || isempty(is_discrete))
         is_discrete = false(1, size(data, 2));
     end
+    
+    calc_weights = false;
+    if (~exist('weights', 'var') || isempty(weights))
+        calc_weights = true;
+    end
+    
+    
     
     nanVals = isnan(data);
     noNans = sum(nanVals,2) == 0;
@@ -30,12 +37,14 @@ function imputed = knnimputeext(data, K, is_discrete)
     
     for r=1:size(dataNans, 1)
         nan_idx = find(nanVals(r, :));
-        dist_vals = dataNoNans(idx{r, :}, :);
-        dist_vals(:, nan_idx) = 0;
-        dist_vals = sum(bsxfun(@minus, dist_vals, dataNans(r, :)).^2, 2);
-        dist_vals = 1./dist_vals;
+        if (calc_weights)
+            weights = dataNoNans(idx{r, :}, :);
+            weights(:, nan_idx) = 0;
+            weights = sum(bsxfun(@minus, weights, dataNans(r, :)).^2, 2);
+            weights = 1./weights;
+        end
         for c=nan_idx
-            dataNans(r, c) = wnanmean(dataNoNans(idx{r, :}, c), dist_vals, is_discrete(c));
+            dataNans(r, c) = wnanmean(dataNoNans(idx{r, :}, c), weights, is_discrete(c));
         end
     end
 
