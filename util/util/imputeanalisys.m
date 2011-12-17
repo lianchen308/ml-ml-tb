@@ -4,7 +4,7 @@ function imputeanalisys(x_train, is_discrete, options)
         options.k = [];
     end
     if (~isfield(options, 'k') || isempty(options.k))
-        options.k = [1 5 10 15 20 30 50 100];
+        options.k = [1 5 10 20 50 100];
     end
 
     %% Normalizing data
@@ -40,6 +40,20 @@ function imputeanalisys(x_train, is_discrete, options)
     dicrete_idx = find(is_discrete);
     impute_types(dicrete_idx) = repmat('d', 1, length(dicrete_idx));
 
+    %% knn neighboors imputation
+    for k=options.k
+        fprintf('Running knn neighboors (k=%d)...\n', k);
+
+        x_impute = knnimputeext(x_train_inject_nan, k, is_discrete); 
+        x_imputeloss = imputationLossMixed(x_train_non_nan, ...
+            x_impute, injected_nans, impute_types);
+        fprintf('Weighted knn neighboors (k=%d) loss: %f...\n', k, x_imputeloss);
+
+        x_impute = knnimputeext(x_train_inject_nan, k, is_discrete, ones(k,1)); 
+        x_imputeloss = imputationLossMixed(x_train_non_nan, ...
+            x_impute, injected_nans, impute_types);
+        fprintf('Non-weighted knn neighboors (k=%d) loss: %f...\n\n', k, x_imputeloss);
+    end
 
     %% mean value imputation
     fprintf('Running mean value imputation...\n');
@@ -56,23 +70,6 @@ function imputeanalisys(x_train, is_discrete, options)
     x_imputeloss = imputationLossMixed(x_train_non_nan, ...
             x_impute, injected_nans, impute_types);
     fprintf('EM imputation loss: %f...\n\n', x_imputeloss);
-
-    %% knn neighboors imputation
-    for k=options.k
-        fprintf('Running knn neighboors (k=%d)...\n', k);
-
-        x_impute = knnimputeext(x_train_inject_nan, k, is_discrete); 
-        x_imputeloss = imputationLossMixed(x_train_non_nan, ...
-            x_impute, injected_nans, impute_types);
-        fprintf('Weighted knn neighboors (k=%d) loss: %f...\n', k, x_imputeloss);
-
-        x_impute = knnimputeext(x_train_inject_nan, k, is_discrete, ones(k,1)); 
-        x_imputeloss = imputationLossMixed(x_train_non_nan, ...
-            x_impute, injected_nans, impute_types);
-        fprintf('Non-weighted knn neighboors (k=%d) loss: %f...\n\n', k, x_imputeloss);
-    end
-
-
     %% Finishing
     fprintf('Done!\n\n');
 end

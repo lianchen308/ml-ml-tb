@@ -1,21 +1,21 @@
 % imputed = knnimputeext(data, K, knnargs)
 % knnargs is in the same format of knnimpute
-function imputed = knnimputeext(data, K, is_discrete, weights)
+function imputed = knnimputeext(data, K, isDiscrete, weights)
     if (~exist('K', 'var') || isempty(K))
         K = 1;
     end
     
-    if (~exist('is_discrete', 'var') || isempty(is_discrete))
-        is_discrete = false(1, size(data, 2));
+    if (~exist('isDiscrete', 'var') || isempty(isDiscrete))
+        isDiscrete = false(1, size(data, 2));
     end
     
-    calc_weights = false;
+    calcWeights = false;
     if (~exist('weights', 'var') || isempty(weights))
-        calc_weights = true;
+        calcWeights = true;
     end
     
     
-    
+    dataStd = nanstd(data);
     nanVals = isnan(data);
     noNans = sum(nanVals,2) == 0;
     nans = sum(nanVals,2) > 0;
@@ -26,25 +26,38 @@ function imputed = knnimputeext(data, K, is_discrete, weights)
     nanVals = isnan(dataNans);
     dataNans(nanVals) = 0;
     
-    % find nancols
-    [~, nan_cols] = find(nanVals);
-    nan_cols = unique(nan_cols);
-    
-    for col=nan_cols
-        [idx, ~] = knnsearch(dataNoNans, dataNans, ...
-            'k', K, 'dist', 'euclidean', 'IncludeTies', true);
-    end
+    idx = knnsearch(dataNoNans, dataNans, ...
+            'k', 20*K, 'dist', 'euclidean', 'IncludeTies', true);
     
     for r=1:size(dataNans, 1)
-        nan_idx = find(nanVals(r, :));
-        if (calc_weights)
-            weights = dataNoNans(idx{r, :}, :);
-            weights(:, nan_idx) = 0;
-            weights = sum(bsxfun(@minus, weights, dataNans(r, :)).^2, 2);
-            weights = 1./weights;
+        knnIdx = idx{r, :};
+        % continuous distance
+        contNoNan = dataNoNans(knnIdx, ~isDiscrete);
+        contNoNan(:, nanVals(r, ~isDiscrete)) = 0;
+        contDist = abs(bsxfun(@minus, contNoNan, dataNans(r, ~isDiscrete)));
+        contDist = bsxfun(@rdivide, contDist, dataStd(~isDiscrete));
+        
+        contDist = sum(contDist, 2);
+        dist = contDist; 
+        
+        % discrete distance
+        discrNoNan = dataNoNans(knnIdx, isDiscrete);
+        discrNoNan(:, nanVals(r, isDiscrete)) = 0;
+        discrDist = bsxfun(@ne, discrNoNan, dataNans(r, isDiscrete));
+        discrDist = sum(discrDist, 2);
+        dist = dist + discrDist; 
+        
+        % trim to first k
+        [dist, iDistSorted] = sort(dist);
+        knnIdx = knnIdx(iDistSorted);
+        dist = dist(1:K);
+        knnIdx = knnIdx(1:K);
+        if (calcWeights)
+           weights = 1./dist;
         end
-        for c=nan_idx
-            dataNans(r, c) = wnanmean(dataNoNans(idx{r, :}, c), weights, is_discrete(c));
+        nanIdx = find(nanVals(r, :));
+        for c=nanIdx
+            dataNans(r, c) = wnanmean(dataNoNans(knnIdx, c), weights, isDiscrete(c));
         end
     end
 
@@ -53,7 +66,7 @@ function imputed = knnimputeext(data, K, is_discrete, weights)
 
 end
 
-function m = wnanmean(x, weights, is_discrete)
+function m = wnanmean(x, weights, isDiscrete)
     %WNANMEAN Weighted Mean value, ignoring NaNs, infs are special
 
     % Find NaNs and set them to zero
@@ -63,15 +76,21 @@ function m = wnanmean(x, weights, is_discrete)
     x(nans) = [];
     infs = isinf(weights);
     if any(infs)
-        if (is_discrete)
+        if (isDiscrete)
             m = mode(x(infs));
             return;
         end
         m = nanmean(x(infs));
         return 
     end
-    if (is_discrete)
-        m = mode(x);
+    if (isDiscrete)
+        [opt, ~, optIdx] = unique(x,'rows');
+        opt_weight = zeros(length(opt), 1);
+        for i=1:length(opt_weight)
+            opt_weight(i) = sum(weights(optIdx == i));
+        end
+        [~, mIdx] = max(opt_weight);
+        m = opt(mIdx);
         return;
     end
     % normalize the weights
