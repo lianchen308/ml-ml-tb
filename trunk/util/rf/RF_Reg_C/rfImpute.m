@@ -71,9 +71,7 @@ function X_out = rfImpute_reg(X_tst,Y_tst)
             %for non-categorical variables use the following
             
             sumprox = sum(prox(miss,without_miss)')';
-            X_out(miss,jj)
             X_out(miss,jj) = prox(miss,without_miss) * X_out(without_miss,jj) ./  sumprox;
-            X_out(miss,jj)
         end
     end
     
@@ -86,8 +84,8 @@ function [xout,hasNA] = na_roughfix(x)
         nan_indx = find(isnan(x(:,hasNA(i))));
         indx = 1:size(x,1);
         indx(nan_indx)=[];
-        median(x(indx,hasNA(i)))
+        median(x(indx,hasNA(i)));
         xout(nan_indx,hasNA(i)) = median(x(indx,hasNA(i)));
     end
-    find(sum(isnan(xout)))
+    find(sum(isnan(xout)));
     1;
