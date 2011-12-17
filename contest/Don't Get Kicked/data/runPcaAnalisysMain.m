@@ -10,7 +10,7 @@ load parsedData.mat;
 pcadata = data;
 
 %% running pca
-var_retained = 0.99;
+var_retained = 0.995;
 fprintf('Runing PCA to achieve at least %3.2f%% of variance\n\n', var_retained*100);
 [~, zu, ~, zk, z_cum_sigma] = pca([pcadata.x_train1; pcadata.x_test1; pcadata.x_train2; pcadata.x_test2; pcadata.x_submit], ...
     var_retained);
