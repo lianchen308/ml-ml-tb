@@ -22,9 +22,9 @@ function [X_norm, mu, sigma] = fnorm(X, varargin)
             mu = nanmean(X);
             sigma = nanstd(X, 0);
         else
-            mu = nanmean(X');
+            mu = nanmean(X'); %#ok<UDIM>
             mu = mu';
-            sigma = nanstd(X', 0);
+            sigma = nanstd(X', 0); %#ok<UDIM>
             sigma = sigma';
         end
     else

@@ -1,8 +1,12 @@
 % imputed = knnimputeext(data, K, knnargs)
 % knnargs is in the same format of knnimpute
-function imputed = knnimputeext(data, K)
+function imputed = knnimputeext(data, K, is_discrete)
     if (~exist('K', 'var') || isempty(K))
         K = 1;
+    end
+    
+    if (~exist('is_discrete', 'var') || isempty(is_discrete))
+        is_discrete = false(1, size(data, 2));
     end
     
     nanVals = isnan(data);
@@ -31,7 +35,7 @@ function imputed = knnimputeext(data, K)
         dist_vals = sum(bsxfun(@minus, dist_vals, dataNans(r, :)).^2, 2);
         dist_vals = 1./dist_vals;
         for c=nan_idx
-            dataNans(r, c) = wnanmean(dataNoNans(idx{r, :}, c), dist_vals);
+            dataNans(r, c) = wnanmean(dataNoNans(idx{r, :}, c), dist_vals, is_discrete(c));
         end
     end
 
@@ -40,24 +44,27 @@ function imputed = knnimputeext(data, K)
 
 end
 
-function m = wnanmean(x,weights)
+function m = wnanmean(x, weights, is_discrete)
     %WNANMEAN Weighted Mean value, ignoring NaNs, infs are special
 
     % Find NaNs and set them to zero
     x = x(:); weights = weights(:);
     nans = isnan(x);
+    weights(nans) = [];
+    x(nans) = [];
     infs = isinf(weights);
-    if all(nans)
-        m = NaN;
-        return
-    end
     if any(infs)
+        if (is_discrete)
+            m = mode(x(infs));
+            return;
+        end
         m = nanmean(x(infs));
         return 
     end
-    % Sum up non-NaNs, and divide by the number of non-NaNs.
-    x(nans) = 0;
-    weights(nans) = 0;
+    if (is_discrete)
+        m = mode(x);
+        return;
+    end
     % normalize the weights
     weights = weights./sum(weights);
     m = weights'*x;
