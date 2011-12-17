@@ -37,7 +37,7 @@ disp([(1:size(data.x_submit,2))'  nanmean(data.x_submit)' nanstd(data.x_submit)'
 
 
 %% estimate missing
-k = 15;
+k = 20;
 fprintf('Estimating missing values by knn (k=%d)...\n', k);
 data.x_train = knnimputeext(data.x_train, k, data.is_discrete);
 data.x_submit = knnimputeext(data.x_submit, k, data.is_discrete);
