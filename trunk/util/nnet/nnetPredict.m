@@ -1,5 +1,5 @@
 % [y_pred, y_prob, acc, auc] = nnetPredict(model, X, y)
-function [y_pred, y_prob, acc, auc] = nnetPredict(model, X, y)
+function [y_pred, y_prob, acc, score] = nnetPredict(model, X, y, score_fcn)
         
    % Probability
     y_out = sim(model, X);
@@ -11,6 +11,8 @@ function [y_pred, y_prob, acc, auc] = nnetPredict(model, X, y)
     [y_pred, y_prob, acc] = predlabel(y, y_out);
 
     % Auc
-    auc = aucscore(y, y_prob);
+    if (exist('score_fcn', 'var') && ~isempty(score_fcn))
+        score = feval(score_fcn, y, y_prob);
+    end
 
 end
