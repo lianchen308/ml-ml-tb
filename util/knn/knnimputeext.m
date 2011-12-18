@@ -26,18 +26,17 @@ function imputed = knnimputeext(data, K, isDiscrete, weights)
     nanVals = isnan(dataNans);
     dataNans(nanVals) = 0;
     
-    idx = knnsearch(dataNoNans, dataNans, ...
-            'k', 50*K, 'dist', 'euclidean', 'IncludeTies', true);
-    
+    [~, idx] = pdist2(dataNoNans, dataNans, 'euclidean', 'Smallest', min(100*K, size(dataNoNans, 1)) );   
+        
     for r=1:size(dataNans, 1)
-        knnIdx = idx{r, :};
+        knnIdx = idx(:, r);
         % continuous distance
         contNoNan = dataNoNans(knnIdx, ~isDiscrete);
         contNoNan(:, nanVals(r, ~isDiscrete)) = 0;
-        contDist = abs(bsxfun(@minus, contNoNan, dataNans(r, ~isDiscrete)));
+        contDist = bsxfun(@minus, contNoNan, dataNans(r, ~isDiscrete));
         contDist = bsxfun(@rdivide, contDist, dataStd(~isDiscrete));
         
-        contDist = sum(contDist, 2);
+        contDist = sum(abs(contDist), 2);
         dist = contDist; 
         
         % discrete distance
