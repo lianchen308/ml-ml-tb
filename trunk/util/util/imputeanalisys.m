@@ -4,7 +4,7 @@ function imputeanalisys(x_train, is_discrete, options)
         options.k = [];
     end
     if (~isfield(options, 'k') || isempty(options.k))
-        options.k = [1 5 10 20 50 100];
+        options.k = [1 5 10 15 20 50 100];
     end
 
     %% Normalizing data
@@ -49,10 +49,11 @@ function imputeanalisys(x_train, is_discrete, options)
             x_impute, injected_nans, impute_types);
         fprintf('Weighted knn neighboors (k=%d) loss: %f...\n', k, x_imputeloss);
 
-        x_impute = knnimputeext(x_train_inject_nan, k, is_discrete, ones(k,1)); 
-        x_imputeloss = imputationLossMixed(x_train_non_nan, ...
-            x_impute, injected_nans, impute_types);
-        fprintf('Non-weighted knn neighboors (k=%d) loss: %f...\n\n', k, x_imputeloss);
+%         x_impute = knnimputeext(x_train_inject_nan, k, is_discrete, ones(k,1)); 
+%         x_imputeloss = imputationLossMixed(x_train_non_nan, ...
+%             x_impute, injected_nans, impute_types);
+%         fprintf('Non-weighted knn neighboors (k=%d) loss: %f...\n', k, x_imputeloss);
+        fprintf('\n');
     end
 
     %% mean value imputation
