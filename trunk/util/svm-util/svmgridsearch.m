@@ -1,22 +1,19 @@
 % function [svm_model, svm_auc, svm_c, svm_gamma] = ...
-%	svmgridsearch(X_train, y_train, X_val, y_val, X_test, y_test, ...
-%		c_values, gamma_values, cross_validation, n_find_params, n_actual_train)
-function [svm_model, svm_auc, svm_c, svm_gamma] = svmgridsearch(X_train, y_train, X_val, y_val, X_test, y_test, ...
+%	[svm_model, svm_score, svm_c, svm_gamma] = svmgridsearch(X_train, y_train, X_test, y_test, ...
+%       c_values, gamma_values, svm_opt, n_find_params, n_actual_train)
+function [svm_model, svm_score, svm_c, svm_gamma] = svmgridsearch(x_train, y_train, x_test, y_test, ...
 	c_values, gamma_values, svm_opt, n_find_params, n_actual_train)
 	
+    %%
     fprintf('Finding SVM params...\n');
     n_train = size(y_train, 1);
     
-	if (~exist('n_find_params', 'var') || isempty(n_find_params))
-		n_find_params = 2000;
-	end
+    if (~exist('n_find_params', 'var') || isempty(n_find_params))
+        n_find_params = 2000;
+    end
+    
     if (n_find_params >= n_train)
         n_find_params = n_train;
-		X_val_find = X_val;
-		y_val_find = y_val;
-    else
-        X_val_find = X_val;
-		y_val_find = y_val;
     end
 	if (~exist('n_actual_train', 'var') || isempty(n_actual_train))
 		n_actual_train = 20000;
@@ -24,32 +21,39 @@ function [svm_model, svm_auc, svm_c, svm_gamma] = svmgridsearch(X_train, y_train
     if (n_actual_train >= n_train)
         n_actual_train = n_train;
     end
+    
+    if (~isfield(svm_opt, 'score_fcn') || isempty(svm_opt.score_fcn))
+		svm_opt.score_fcn = 'aucscore';
+    end
 
-    [svm_c, svm_gamma] = dogridsearch(X_train(1:n_find_params, :), y_train(1:n_find_params, :), ...
-        X_val_find, y_val_find, c_values, gamma_values, svm_opt);
+    %%
+    [svm_c, svm_gamma] = dogridsearch(x_train(1:n_find_params, :), y_train(1:n_find_params, :), ...
+        x_test, y_test, c_values, gamma_values, svm_opt);
 	svm_c = svm_c(1); 
 	svm_gamma = svm_gamma(1);
 	
-    fprintf('Params selected: C = %8.8f, gamma = %5.10f\n', ...
+    fprintf('Params selected: C = %f, gamma = %f\n', ...
                 svm_c(1), svm_gamma(1));
 
+    %%
     fprintf('Training SVM params...\n');
 
     cur_svm_opt = svm_opt;
     cur_svm_opt.c = svm_c(1);
     cur_svm_opt.g = svm_gamma(1);
-    [svm_model] = svmtrainw(X_train(1:n_actual_train, :), y_train(1:n_actual_train, :), cur_svm_opt);
-    [~, ~, ~, y_train_auc] = svmpredictw(svm_model, X_train, y_train);
-    [~, ~, ~, y_val_auc] = svmpredictw(svm_model, X_val, y_val);
-    [~, ~, ~, y_test_auc] = svmpredictw(svm_model, X_test, y_test);
-    fprintf('AUC: train auc = %1.4f, val auc = %1.4f, test auc = %1.4f\n', y_train_auc, y_val_auc, y_test_auc);
-    svm_auc = y_test_auc;
+    [svm_model] = svmtrainw(x_train(1:n_actual_train, :), y_train(1:n_actual_train, :), cur_svm_opt);
+    [~, ~, ~, y_train_score] = svmpredictw(svm_model, x_train, y_train, svm_opt.score_fcn);
+    [~, ~, ~, y_test_score] = svmpredictw(svm_model, x_test, y_test, svm_opt.score_fcn);
+    fprintf('%s: train = %1.4f, test = %1.4f\n', ...
+        svm_opt.score_fcn, y_train_score, y_test_score);
+    svm_score = y_test_score;
 
 end
 
-function [C, gamma] = dogridsearch(X_train, y_train, X_val, y_val, c_values, gamma_values, svm_opt)
+function [C, gamma] = dogridsearch(x_train, y_train, x_test, y_test, ...
+    c_values, gamma_values, svm_opt)
 
-    % common vars
+    %% common vars
     c_n 		= length(c_values);
     gamma_n 	= length(gamma_values);
 
@@ -63,7 +67,7 @@ function [C, gamma] = dogridsearch(X_train, y_train, X_val, y_val, c_values, gam
     gamma_col = 2;
     score_col = 3;
 
-    % building param table: [C gamma score acc] for each column
+    %% building param table: [C gamma score acc] for each column
     param_matrix = zeros(c_n*gamma_n, 3);
     z = 1;
     for i=1:c_n
@@ -75,10 +79,10 @@ function [C, gamma] = dogridsearch(X_train, y_train, X_val, y_val, c_values, gam
     end
 
 
-    % training models
+    %% training models
     n_params = size(param_matrix, 1);
     fid = fopen(sprintf('svmgridsearch.%s.txt', datestr(now, 'yyyy-mm-dd.HH-MM')),'a');
-	fprintf(fid,'%%\tC\t\tgamma\t\tacc\t\tauc\n');
+	fprintf(fid,'%%\tC\t\tgamma\t\tacc\t\t%s\n', svm_opt.score_fcn);
     for i=1:n_params
         % getting params
         C = param_matrix(i,c_col);
@@ -87,19 +91,21 @@ function [C, gamma] = dogridsearch(X_train, y_train, X_val, y_val, c_values, gam
         cur_svm_opt = svm_opt;
         cur_svm_opt.c = C;
         cur_svm_opt.g = gamma;
-        [svm_model] = svmtrainw(X_train, y_train, cur_svm_opt);
-        [~, y_val_acc, ~, y_val_auc] = svmpredictw(svm_model, X_val, y_val);
+        [svm_model] = svmtrainw(x_train, y_train, cur_svm_opt);
+        [~, y_test_acc, ~, y_test_score] = svmpredictw(svm_model, ...
+            x_test, y_test, svm_opt.score_fcn);
         %saving results
-        param_matrix(i,score_col) = y_val_auc;
-        fprintf('P %d of %d: C=%10.10f, g=%10.10f, acc:%1.4f, auc:%1.4f\n', ...
-                i, n_params, C, gamma, y_val_acc, y_val_auc);
-        fprintf(fid, '%s\t%s\t%s\t%s\n', num2str(C), num2str(gamma), num2str(y_val_acc), num2str(y_val_auc));
+        param_matrix(i,score_col) = y_test_score;
+        fprintf('P %d of %d: C=%10.10f, g=%10.10f, acc:%1.4f, %s:%1.4f\n', ...
+                i, n_params, C, gamma, y_test_acc, svm_opt.score_fcn, y_test_score);
+        fprintf(fid, '%s\t%s\t%s\t%s\n', num2str(C), num2str(gamma), ...
+            num2str(y_test_acc), num2str(y_test_score));
     end
     fclose(fid);
 
-    % find max accuracy
-    auc		= max(param_matrix(:, score_col));
-    max_i	= find(param_matrix(:, score_col) == auc);
+    %% find max accuracy
+    score		= max(param_matrix(:, score_col));
+    max_i	= find(param_matrix(:, score_col) == score);
     for i=1:length(max_i)
         C(i) = param_matrix(max_i(i), c_col);
         gamma(i) = param_matrix(max_i(i), gamma_col);

@@ -19,7 +19,7 @@ data.x_test1 = data.x_test1';
 data.x_train = [data.x_train1 data.x_test1];
 data.y_train = [data.y_train1 data.y_test1];
 
-n = 200;
+n = 500;
 model_hist = {};
 
 n_w = 15;
@@ -33,7 +33,7 @@ for i=1:n
     
     nn_config = newff(minmax(data.x_train), minmax(data.y_train), ...
         50, {'tansig', 'tansig', 'tansig'});
-    nn_config.trainParam.max_fail = 30;
+    nn_config.trainParam.max_fail = 10;
     nn_config.trainParam.min_grad = 1e-30;
     nn_config.divideFcn = 'divideblock';
     nn_config.divideParam.trainRatio = 0.8; 
