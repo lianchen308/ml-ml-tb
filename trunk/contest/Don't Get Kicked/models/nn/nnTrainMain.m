@@ -21,8 +21,8 @@ data.y_train = [data.y_train1 data.y_test1];
 
 n = 100;
 model_hist = {};
-weights = deftrainweight(data.y_train);
-weights(data.y_train == 1) = weights(data.y_train == 1)*0.95;
+weights = ones(size(data.y_train)); % deftrainweight(data.y_train);
+%weights(data.y_train == 1) = weights(data.y_train == 1)*0.95;
 score_fcn = 'giniscore';
 for i=1:n
     % Training
@@ -35,8 +35,8 @@ for i=1:n
     nn_config.trainParam.min_grad = 1e-30;
     nn_config.divideFcn = 'divideblock';
     nn_config.divideParam.trainRatio = 0.8; 
-    nn_config.divideParam.valRatio = 0.15;
-    nn_config.divideParam.testRatio = 0.5;
+    nn_config.divideParam.valRatio = 0.2;
+    nn_config.divideParam.testRatio = 0;
     [cur_nn_model.model] = train(nn_config, data.x_train, ...
         data.y_train, [], [], weights);
     
