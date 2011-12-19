@@ -19,26 +19,35 @@ data.x_test1 = data.x_test1';
 data.x_train = [data.x_train1 data.x_test1];
 data.y_train = [data.y_train1 data.y_test1];
 
-n = 100;
+n = 200;
 model_hist = {};
-weights = ones(size(data.y_train)); % deftrainweight(data.y_train);
-%weights(data.y_train == 1) = weights(data.y_train == 1)*0.95;
+
+n_w = 15;
+weights = linspace(1, negposratio(data.y_train)*1.5, n_w);
+
 score_fcn = 'giniscore';
+
 for i=1:n
     % Training
     tic;
-    fprintf('Model nn %d of %d train...\n', i, n); 
     
     nn_config = newff(minmax(data.x_train), minmax(data.y_train), ...
-        50, {'tansig', 'tansig'});
+        50, {'tansig', 'tansig', 'tansig'});
     nn_config.trainParam.max_fail = 30;
     nn_config.trainParam.min_grad = 1e-30;
     nn_config.divideFcn = 'divideblock';
     nn_config.divideParam.trainRatio = 0.8; 
-    nn_config.divideParam.valRatio = 0.2;
-    nn_config.divideParam.testRatio = 0;
+    nn_config.divideParam.valRatio   = 0.2;
+    nn_config.divideParam.testRatio  = 0.0;
+    
+    pos_weight = weights(rem(i-1,n_w)+1);
+    weight = ones(size(data.y_train)); 
+    weight(data.y_train == 1) = pos_weight; 
+    
+    fprintf('Model nn %d of %d train (weight=%f)...\n', i, n, pos_weight); 
     [cur_nn_model.model] = train(nn_config, data.x_train, ...
-        data.y_train, [], [], weights);
+        data.y_train, [], [], weight);
+    cur_nn_model.pos_weight = pos_weight;
     
     [cur_nn_model.score, ~] = nnetEval(cur_nn_model.model, data.x_train1, data.y_train1, ...
         data.x_test1, data.y_test1, score_fcn);

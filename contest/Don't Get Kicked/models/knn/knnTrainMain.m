@@ -30,7 +30,7 @@ for k =k_n
 
         fprintf('Knn saved...\n');
     else
-        fprintf('Best %s is: %1.4f\n', score_fcn, curr_knn_model.score);
+        fprintf('Best %s is: %1.4f\n', score_fcn, knn_model.score);
     end
     toc;
     fprintf('\n');
