@@ -1,4 +1,4 @@
-% [y_pred, y_prob, acc, auc] = nnetPredict(model, X, y)
+% [y_pred, y_prob, acc, score] = nnetPredict(model, X, y, score_fcn)
 function [y_pred, y_prob, acc, score] = nnetPredict(model, X, y, score_fcn)
         
    % Probability
@@ -10,7 +10,7 @@ function [y_pred, y_prob, acc, score] = nnetPredict(model, X, y, score_fcn)
     
     [y_pred, y_prob, acc] = predlabel(y, y_out);
 
-    % Auc
+    % Score
     if (exist('score_fcn', 'var') && ~isempty(score_fcn))
         score = feval(score_fcn, y, y_prob);
     end

@@ -1,5 +1,5 @@
-% [y_pred, y_prob, acc, auc] = knnpredict(knn_model, X, y)
-function [y_pred, y_prob, acc, auc] = knnpredict(knn_model, X, y)
+% [y_pred, y_prob, acc, score] = knnpredict(knn_model, X, y, score_fcn)
+function [y_pred, y_prob, acc, score] = knnpredict(knn_model, X, y, score_fcn)
 
     n_rows = size(X, 1);
     impute_data = [X (NaN*ones(n_rows, 1))];
@@ -10,13 +10,15 @@ function [y_pred, y_prob, acc, auc] = knnpredict(knn_model, X, y)
     
     if (~exist('y', 'var') || isempty(y))
         acc = -1;
-        auc = -1;
+        score = -1;
     else
         y_class = zeros(size(y_pred));
         y_class(y_pred < 0)  = -1;
         y_class(y_pred >= 0) = 1;
         acc = (length(find(y_class == y))/length(y));
-        auc = aucscore(y, y_pred);
+        if (exist('score_fcn', 'var') && ~isempty(score_fcn))
+            score = feval(score_fcn, y, y_prob);
+        end
     end
 
 end

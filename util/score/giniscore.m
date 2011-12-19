@@ -16,9 +16,9 @@ function score = giniscore(y, y_pred)
 %--------------------------------------------------------------------------
 	y=y(:);
 	y_pred=y_pred(:);
-
+    y(y == -1) = 0;
 	n=length(y);
-	k=[y,y_pred,[1:n]'];
+	k=[y,y_pred,(1:n)'];
 	k=sortrows(k,[-2,3]);
-	score=sum(cumsum(k(:,1)./sum(k(:,1)))-[1/n:1/n:1]')/n;
+	score=sum(cumsum(k(:,1)./sum(k(:,1)))-(1/n:1/n:1)')/n;
 end
