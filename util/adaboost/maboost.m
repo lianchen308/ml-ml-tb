@@ -34,7 +34,11 @@
 %           weights   - weights of learners
 %           final_hyp - output for training data
 function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weights, old_learners)
-
+    
+    if (~hasfield(learn_params, 'score_fcn'))
+        learn_params.score_fcn = 'aucscore';
+    end
+    
 	if (hasfield(learn_params, 'X_val') && hasfield(learn_params, 'y_val'))
 		X_val = learn_params.X_val;
 		y_val = learn_params.y_val;
@@ -51,7 +55,7 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
        y_val = y;
 	end
 	
-    best.auc = -1;
+    best.score = -1;
 	best.fails = 0;
     
     if (nargin == 3)
@@ -70,8 +74,8 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
         % store best values
         y_val_result = mabclassify(learners, weights, X_val);
         [~, y_val_prob, val_acc] = predlabel(y_val, y_val_result);
-        [val_auc] = aucscore(y_val, y_val_prob);
-        best.auc = val_auc;
+        [val_score] = feval(learn_params.score_fcn, y_val, y_val_prob);
+        best.score = val_score;
         best.acc = val_acc;
         best.learners = learners;
         best.weights = weights;
@@ -133,13 +137,13 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
 			% performance calc
             y_val_result = mabclassify(learners, weights, X_val);
 			[~, y_val_prob, val_acc] = predlabel(y_val, y_val_result);
-			[val_auc] = aucscore(y_val, y_val_prob);
+			[val_score] = feval(learn_params.score_fcn, y_val, y_val_prob);
 			
             
 			
 			% stop condition
-            if ((val_auc > best.auc) || (val_auc == best.auc && val_acc > best.acc))
-                best.auc = val_auc;
+            if ((val_score > best.score) || (val_score == best.score && val_acc > best.acc))
+                best.score = val_score;
                 best.acc = val_acc;
                 best.learners = learners;
                 best.weights = weights;
@@ -156,8 +160,10 @@ function [learners, weights, final_hyp] = maboost(learn_params, X, y, old_weight
                     status = sprintf('fail %d', best.fails);
                 end
                 [~, y_prob, acc] = predlabel(y, final_hyp);
-                fprintf('Iter %d (%s): train acc=%1.4f, train auc=%1.4f, val acc=%1.4f, val auc=%1.4f\n', ...
-                    it, status, acc, aucscore(y, y_prob), val_acc, val_auc);
+                [train_score] = feval(learn_params.score_fcn, y, y_prob);
+                fprintf('Iter %d (%s): train acc=%1.4f, train %s=%1.4f, val acc=%1.4f, val %s=%1.4f\n', ...
+                    it, status, acc, learn_params.score_fcn, train_score, ...
+                    val_acc, learn_params.score_fcn, val_score);
             end
         end
 		

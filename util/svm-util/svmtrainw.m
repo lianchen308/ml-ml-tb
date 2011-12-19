@@ -9,13 +9,21 @@ function [model] = svmtrainw(X, y, opt)
         opt.c = 1;
     end
     
-    if (~isfield(opt, 'weights'))
-        opt.weights = deftrainweight(y);
-    elseif (isscalar(opt.weights))
-        opt.weights = ones(size(y))*opt.weights;
+    if (isfield(opt, 'weights'))
+        opt.weights = weights;
+    else
+        opt.weights = ones(size(y));
     end
     
-    if (~isfield(opt, 'g'))
+    if (isfield(opt, 'pos_weights'))
+        opt.weights(y == 1) = opt.pos_weights;
+    end
+    if (isfield(opt, 'neg_weights'))
+        opt.weights(y == -1)  = opt.neg_weights;
+    end
+
+    
+    if (~isfield(opt, 'g')) 
         opt.g = 1/size(X,2);
     end
     
