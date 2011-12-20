@@ -30,10 +30,12 @@ fprintf('Normalizing data...\n');
 [data.x_submit] = fnorm(data.x_submit, data.x_mu, data.x_std);
 
 fprintf('Normalization sumary...\n');
-fprintf('\tDimension\tMean\tStd\t\t(training):\n');
-disp([(1:size(data.x_train, 2))'  nanmean(data.x_train)' nanstd(data.x_train)']);
-fprintf('\tDimension\tMean\tStd\t\t(submit):\n');
-disp([(1:size(data.x_submit,2))'  nanmean(data.x_submit)' nanstd(data.x_submit)']);
+fprintf('\tDimension\tMean\tStd\t\t\tmax\t\tmin\t\t(norm training):\n');
+disp([(1:size(data.x_train, 2))'  nanmean(data.x_train)' nanstd(data.x_train)' ...
+    nanmax(data.x_train)' nanmin(data.x_train)']);
+fprintf('\tDimension\tMean\tStd\t\t\tmax\t\tmin\t\t(norm submit):\n');
+disp([(1:size(data.x_submit,2))'  nanmean(data.x_submit)' nanstd(data.x_submit)' ...
+    nanmax(data.x_submit)' nanmin(data.x_submit)']);
 
 
 %% estimate missing

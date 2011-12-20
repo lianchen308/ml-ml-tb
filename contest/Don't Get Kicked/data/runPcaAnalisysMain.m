@@ -26,6 +26,24 @@ fprintf('Features reduced to %d features retaining %3.2f%% of variance.\n', zk, 
 fprintf('Variance by dimension:\n\n');
 disp(z_cum_sigma);
 
+%% Value distribution
+fprintf('Normalizing pca data...\n');
+x_train = [pcadata.x_train1; pcadata.x_test1; pcadata.x_train2; pcadata.x_test2];
+[~, pcadata.x_mu_pca, pcadata.x_std_pca] = fnorm(x_train);
+[pcadata.x_train1] = fnorm(pcadata.x_train1, pcadata.x_mu_pca, pcadata.x_std_pca);
+[pcadata.x_test1] = fnorm(pcadata.x_test1, pcadata.x_mu_pca, pcadata.x_std_pca);
+[pcadata.x_train2] = fnorm(pcadata.x_train2, pcadata.x_mu_pca, pcadata.x_std_pca);
+[pcadata.x_test2] = fnorm(pcadata.x_test2, pcadata.x_mu_pca, pcadata.x_std_pca);
+[pcadata.x_submit] = fnorm(pcadata.x_submit, pcadata.x_mu_pca, pcadata.x_std_pca);
+x_train = [pcadata.x_train1; pcadata.x_test1; pcadata.x_train2; pcadata.x_test2];
+fprintf('Normalization sumary...\n');
+fprintf('\tDimension\tMean\tStd\t\t\tmax\t\tmin\t\t(norm training):\n');
+disp([(1:size(x_train, 2))'  nanmean(x_train)' nanstd(x_train)' ...
+    nanmax(x_train)' nanmin(x_train)']);
+fprintf('\tDimension\tMean\tStd\t\t\tmax\t\tmin\t\t(norm submit):\n');
+disp([(1:size(pcadata.x_submit,2))'  nanmean(pcadata.x_submit)' nanstd(pcadata.x_submit)' ...
+    nanmax(pcadata.x_submit)' nanmin(pcadata.x_submit)']);
+
 
 %% Finishing
 fprintf('Saving data...\n');

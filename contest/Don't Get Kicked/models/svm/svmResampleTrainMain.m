@@ -1,43 +1,40 @@
 clear; clc;
 
-svm_ru_model_auc = -1;
+svm_ru_model.score = -1;
 fprintf('Loading resampled data...\n');
-load ../data/binaryData.mat;
-load binaryResampledData;
-if (exist('binarySvmRUModelData.mat', 'file'))
-    load binarySvmRUModelData.mat;
+
+load('../../data/parsedData.mat');
+load resampledData.mat;
+if (exist('svmRUModelData.mat', 'file'))
+    load svmRUModelData.mat;
 end
 
-[rnd_sample] = shuffle([X_train1_resampled y_train1_resampled]);
-X_train1_resampled = rnd_sample(:, 1:end-1);
-y_train1_resampled = rnd_sample(:, end);
-
-c_values = logspace(3, 8, 10); gamma_values = logspace(-6, -2, 10); % -> search!
-n_find_params = 5000;
-n_actual_train= length(y_train1_resampled);
-options.weights = 1;
+c_values = logspace(1, 7, 10); gamma_values = logspace(-8, -0, 10); % -> search!
+n_find_params = 10000;
+n_actual_train= 45000;
+opt.score_fcn = 'giniscore';
+opt.pos_weights = 7.928269;
 
 % Training
 tic;
-[curr_svm_ru_model, curr_svm_ru_model_auc, curr_ru_c, curr_ru_gamma] = svmgridsearch(X_train1_resampled, y_train1_resampled, X_val, y_val, X_test, y_test, ...
-    c_values, gamma_values, options, n_find_params, n_actual_train);
+[curr_model.model, curr_model.score, curr_model.c, curr_model.gamma] = svmgridsearch( ...
+    resampled_data.x_train1_resampled, resampled_data.y_train1_resampled, data.x_test1, data.y_test1, ...
+    c_values, gamma_values, opt, n_find_params, n_actual_train);
 
-[~, ~, ~, y_train2_auc] = svmpredictw(curr_svm_ru_model, X_train2, y_train2);
-fprintf('AUC: train2 auc = %1.4f\n', y_train2_auc);
+[~, ~, ~, y_train1_score] = svmpredictw(curr_model.model, ...
+    data.x_train1, data.y_train1, opt.score_fcn);
+fprintf('%s: train1 = %1.4f\n', opt.score_fcn, y_train1_score);
 
-curr_svm_ru_model_auc = min(y_train2_auc, curr_svm_ru_model_auc);
+curr_model.score = min(y_train1_score, curr_model.score);
 
 % Saving
-if (curr_svm_ru_model_auc > svm_ru_model_auc)
-    fprintf('Saving svmru model...\n');
-    svm_ru_model = curr_svm_ru_model;
-    svm_ru_model_auc = curr_svm_ru_model_auc;
-    svm_ru_c = curr_ru_c; 
-    svm_ru_gamma = curr_ru_gamma;
-    save('binarySvmRUModelData.mat', 'svm_ru_model', 'svm_ru_model_auc', 'svm_ru_c', 'svm_ru_gamma');
-    fprintf('Svm modelru saved...\n');
+if (curr_model.score > svm_ru_model.score)
+    fprintf('Saving svm model...\n');
+    svm_ru_model = curr_model;
+    save svmRUModelData.mat svm_ru_model;
+    fprintf('Svm model saved...\n');
 else
-    fprintf('Best auc is: %1.4f\n', svm_ru_model_auc);
+    fprintf('Best auc is: %1.4f\n', svm_ru_model.score);
 end
 toc;
 fprintf('\n');
