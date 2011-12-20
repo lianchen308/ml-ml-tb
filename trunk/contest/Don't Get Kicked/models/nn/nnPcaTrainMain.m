@@ -1,11 +1,12 @@
 clear; clc;
 fprintf('Loading data...\n');
 
-nn_model.score = -1;
-load('../../data/parsedData.mat');
+pca_nn_model.score = -1;
+load('../../data/pcaParsedData.mat');
+data = pcadata;
 
-if (exist('nnModelData.mat', 'file'))
-    load nnModelData.mat;
+if (exist('pcaNnModelData.mat', 'file'))
+    load pcaNnModelData.mat;
 end
 
 % adjusting data format
@@ -32,7 +33,7 @@ for i=1:n
     tic;
     
     nn_config = newff(minmax(data.x_train), minmax(data.y_train), ...
-        70, {'tansig', 'tansig', 'tansig', 'tansig'});
+        60, {'tansig', 'tansig', 'tansig', 'tansig'});
     nn_config.trainParam.max_fail = 10;
     nn_config.trainParam.min_grad = 1e-30;
     nn_config.divideFcn = 'divideblock';
@@ -53,13 +54,13 @@ for i=1:n
         data.x_test1, data.y_test1, score_fcn);
     
     % Saving
-    if (cur_nn_model.score > nn_model.score)
+    if (cur_nn_model.score > pca_nn_model.score)
         fprintf('Saving nn model...\n');
-        nn_model = cur_nn_model;
-        save nnModelData.mat nn_model;
+        pca_nn_model = cur_nn_model;
+        save pcaNnModelData.mat pca_nn_model;
         fprintf('Nn model saved...\n');
     else
-        fprintf('Best %s is: %1.4f\n', score_fcn, nn_model.score);
+        fprintf('Best %s is: %1.4f\n', score_fcn, pca_nn_model.score);
     end
     toc;
     fprintf('\n');
